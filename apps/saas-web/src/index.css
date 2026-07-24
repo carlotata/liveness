@@ -3,3 +3,11 @@
 html {
   scroll-behavior: smooth;
 }
+
+button,
+[role="button"],
+[type="button"],
+[type="reset"],
+[type="submit"] {
+  cursor: pointer;
+}

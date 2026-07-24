@@ -14,7 +14,8 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { api } from "../services/api";
 
 const SidebarItem = ({ id, label, activeId, onClick, icon: Icon }) => (
   <li>
@@ -125,23 +126,23 @@ const IntroContent = () => (
 
 const SDKUsageContent = () => (
   <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-    <h2 className="mb-8 text-4xl font-black tracking-tight text-slate-900">
+    <h2 className="mb-6 sm:mb-8 text-3xl sm:text-4xl font-black tracking-tight text-slate-900">
       Using the SDK
     </h2>
-    <p className="mb-8 text-lg text-slate-600">
+    <p className="mb-6 sm:mb-8 text-base sm:text-lg text-slate-600">
       Integrate the Liveness SDK into your frontend to start capturing biometric
       data securely.
     </p>
 
-    <div className="space-y-12">
+    <div className="space-y-8 sm:space-y-12">
       <div>
-        <h3 className="mb-4 text-2xl font-bold">1. Installation</h3>
+        <h3 className="mb-3 sm:mb-4 text-xl sm:text-2xl font-bold">1. Installation</h3>
         <CodeBlock language="bash" code={`npm install @liveness/sdk`} />
       </div>
 
       <div>
-        <h3 className="mb-4 text-2xl font-bold">2. Initialization</h3>
-        <p className="mb-4 text-slate-600">
+        <h3 className="mb-3 sm:mb-4 text-xl sm:text-2xl font-bold">2. Initialization</h3>
+        <p className="mb-3 sm:mb-4 text-sm sm:text-base text-slate-600">
           You must provide a <code>basePath</code> that points to the MediaPipe
           and TensorFlow.js model assets.
         </p>
@@ -158,8 +159,8 @@ const sdk = new LivenessSDK({
       </div>
 
       <div>
-        <h3 className="mb-4 text-2xl font-bold">3. Starting the Session</h3>
-        <p className="mb-4 text-slate-600">
+        <h3 className="mb-3 sm:mb-4 text-xl sm:text-2xl font-bold">3. Starting the Session</h3>
+        <p className="mb-3 sm:mb-4 text-sm sm:text-base text-slate-600">
           The SDK requires a <code>&lt;video&gt;</code> element for the camera
           feed and a <code>&lt;canvas&gt;</code> for the debug/face-mesh
           overlay.
@@ -178,7 +179,7 @@ await sdk.start(video, canvas);`}
       </div>
 
       <div>
-        <h3 className="mb-4 text-2xl font-bold">4. Handling Results</h3>
+        <h3 className="mb-3 sm:mb-4 text-xl sm:text-2xl font-bold">4. Handling Results</h3>
         <CodeBlock
           language="javascript"
           code={`sdk.on("success", (result) => {
@@ -204,20 +205,20 @@ sdk.on("failure", (error) => {
 
 const CloudUsageContent = () => (
   <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-    <h2 className="mb-8 text-4xl font-black tracking-tight text-slate-900">
+    <h2 className="mb-6 sm:mb-8 text-3xl sm:text-4xl font-black tracking-tight text-slate-900">
       Liveness Cloud Guide
     </h2>
-    <p className="mb-8 text-lg text-slate-600">
+    <p className="mb-6 sm:mb-8 text-base sm:text-lg text-slate-600">
       The Liveness Cloud provides a managed backend for handling biometric data,
       API keys, and webhooks.
     </p>
 
-    <div className="space-y-12">
-      <div className="rounded-3xl border-2 border-blue-100 bg-blue-50/30 p-8">
-        <h3 className="mb-4 flex items-center text-xl font-bold">
+    <div className="space-y-8 sm:space-y-12">
+      <div className="rounded-2xl sm:rounded-3xl border-2 border-blue-100 bg-blue-50/30 p-5 sm:p-8">
+        <h3 className="mb-3 sm:mb-4 flex items-center text-lg sm:text-xl font-bold">
           <Key className="mr-2 h-5 w-5 text-blue-600" /> 1. Manage API Keys
         </h3>
-        <p className="mb-6 text-sm text-slate-600">
+        <p className="mb-4 sm:mb-6 text-sm text-slate-600">
           Every request to the Liveness Cloud API requires a valid API Key.
         </p>
         <ol className="list-inside list-decimal space-y-2 text-sm text-slate-700">
@@ -233,11 +234,11 @@ const CloudUsageContent = () => (
       </div>
 
       <div>
-        <h3 className="mb-4 flex items-center text-2xl font-bold">
-          <Bell className="mr-2 h-6 w-6 text-blue-600" /> 2. Configuring
+        <h3 className="mb-3 sm:mb-4 flex items-center text-xl sm:text-2xl font-bold">
+          <Bell className="mr-2 h-5 w-5 sm:h-6 sm:w-6 text-blue-600" /> 2. Configuring
           Webhooks
         </h3>
-        <p className="mb-4 text-slate-600">
+        <p className="mb-3 sm:mb-4 text-sm sm:text-base text-slate-600">
           Get real-time notifications on your server whenever a liveness check
           is completed.
         </p>
@@ -269,7 +270,7 @@ const CloudUsageContent = () => (
             </p>
           </li>
         </ul>
-        <p className="mb-4 text-slate-600">
+        <p className="mb-4 text-sm sm:text-base text-slate-600">
           To verify incoming webhook payloads and avoid formatting issues, use the raw request body buffer:
         </p>
         <CodeBlock
@@ -298,20 +299,20 @@ app.post("/webhooks/liveness", (req, res) => {
       </div>
 
       <div>
-        <h3 className="mb-4 text-2xl font-bold">3. Cloud API Endpoints</h3>
-        <p className="mb-6 text-slate-600">
+        <h3 className="mb-3 sm:mb-4 text-xl sm:text-2xl font-bold">3. Cloud API Endpoints</h3>
+        <p className="mb-6 text-sm sm:text-base text-slate-600">
           The Liveness Cloud provides secure endpoints for biometric enrollment
           and identity matching. All requests require the <code>x-api-key</code>{" "}
           header.
         </p>
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           {/* Enroll Endpoint */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-8 shadow-sm">
-            <div className="mb-4 flex items-center gap-3">
-              <span className="rounded px-2.5 py-1 text-xs font-black bg-emerald-100 text-emerald-700">
+          <div className="rounded-xl sm:rounded-2xl border border-slate-100 bg-white p-5 sm:p-8 shadow-sm">
+            <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <span className="w-fit rounded px-2.5 py-1 text-xs font-black bg-emerald-100 text-emerald-700">
                 POST
               </span>
-              <code className="text-lg font-bold text-slate-900">
+              <code className="text-sm sm:text-lg font-bold text-slate-900 break-all">
                 /api/liveness/enroll
               </code>
             </div>
@@ -335,12 +336,12 @@ app.post("/webhooks/liveness", (req, res) => {
           </div>
 
           {/* Verify Endpoint */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-8 shadow-sm">
-            <div className="mb-4 flex items-center gap-3">
-              <span className="rounded px-2.5 py-1 text-xs font-black bg-blue-100 text-blue-700">
+          <div className="rounded-xl sm:rounded-2xl border border-slate-100 bg-white p-5 sm:p-8 shadow-sm">
+            <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <span className="w-fit rounded px-2.5 py-1 text-xs font-black bg-blue-100 text-blue-700">
                 POST
               </span>
-              <code className="text-lg font-bold text-slate-900">
+              <code className="text-sm sm:text-lg font-bold text-slate-900 break-all">
                 /api/liveness/verify
               </code>
             </div>
@@ -367,8 +368,8 @@ app.post("/webhooks/liveness", (req, res) => {
       </div>
 
       <div>
-        <h3 className="mb-4 text-2xl font-bold">4. Payload Integrity</h3>
-        <p className="mb-4 text-slate-600">
+        <h3 className="mb-3 sm:mb-4 text-xl sm:text-2xl font-bold">4. Payload Integrity</h3>
+        <p className="mb-3 sm:mb-4 text-sm sm:text-base text-slate-600">
           To prevent man-in-the-middle attacks, the Cloud API validates the{" "}
           <code>integrity</code> field using a deterministic hash of the
           payload.
@@ -393,30 +394,30 @@ app.post("/webhooks/liveness", (req, res) => {
 
 const MethodologyContent = () => (
   <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-    <h2 className="mb-8 text-4xl font-black tracking-tight text-slate-900">
+    <h2 className="mb-6 sm:mb-8 text-3xl sm:text-4xl font-black tracking-tight text-slate-900">
       Detection Methodology
     </h2>
 
-    <div className="space-y-12">
-      <div className="rounded-3xl border border-slate-100 p-8">
-        <h3 className="mb-4 text-xl font-bold text-slate-900">
+    <div className="space-y-8 sm:space-y-12">
+      <div className="rounded-2xl sm:rounded-3xl border border-slate-100 p-5 sm:p-8">
+        <h3 className="mb-3 sm:mb-4 text-lg sm:text-xl font-bold text-slate-900">
           Active Verification (State Machine)
         </h3>
-        <p className="mb-6 leading-relaxed text-slate-600">
+        <p className="mb-6 leading-relaxed text-sm sm:text-base text-slate-600">
           The SDK validates "aliveness" by requiring physiological responses to
           randomized challenges.
         </p>
         <div className="grid gap-6 sm:grid-cols-2">
-          <div className="rounded-2xl bg-slate-50 p-6">
-            <h5 className="mb-2 font-bold">Blink Analysis (EAR)</h5>
+          <div className="rounded-xl sm:rounded-2xl bg-slate-50 p-5 sm:p-6">
+            <h5 className="mb-2 font-bold text-sm sm:text-base">Blink Analysis (EAR)</h5>
             <p className="text-xs leading-relaxed text-slate-500">
               We calculate the Eye Aspect Ratio using 6 landmarks per eye. A
               blink is registered when the EAR drops below 0.25 after being
               above 0.3 (open).
             </p>
           </div>
-          <div className="rounded-2xl bg-slate-50 p-6">
-            <h5 className="mb-2 font-bold">Head Pose (3D)</h5>
+          <div className="rounded-xl sm:rounded-2xl bg-slate-50 p-5 sm:p-6">
+            <h5 className="mb-2 font-bold text-sm sm:text-base">Head Pose (3D)</h5>
             <p className="text-xs leading-relaxed text-slate-500">
               Yaw and Pitch are estimated by measuring the pixel-distance ratio
               between the nose bridge and the cheek boundaries in 3D space.
@@ -425,34 +426,34 @@ const MethodologyContent = () => (
         </div>
       </div>
 
-      <div className="rounded-3xl border border-slate-100 p-8">
-        <h3 className="mb-4 text-xl font-bold text-slate-900">
+      <div className="rounded-2xl sm:rounded-3xl border border-slate-100 p-5 sm:p-8">
+        <h3 className="mb-3 sm:mb-4 text-lg sm:text-xl font-bold text-slate-900">
           Anti-Spoofing Analytics
         </h3>
         <div className="space-y-6">
           <div className="flex gap-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 font-bold text-blue-600">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 font-bold text-blue-600 text-xs">
               FFT
             </div>
             <div>
               <h5 className="text-sm font-bold text-slate-900">
                 Moiré Detection
               </h5>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-slate-500 leading-relaxed">
                 Detects high-frequency sub-pixel patterns from digital screens
                 using Fast Fourier Transform.
               </p>
             </div>
           </div>
           <div className="flex gap-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 font-bold text-blue-600">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 font-bold text-blue-600 text-xs">
               LV
             </div>
             <div>
               <h5 className="text-sm font-bold text-slate-900">
                 Texture Variance
               </h5>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-slate-500 leading-relaxed">
                 Uses Laplacian kernels to measure the edge-sharpness of the
                 face, identifying flat printouts or low-res displays.
               </p>
@@ -466,22 +467,22 @@ const MethodologyContent = () => (
 
 const APIRefContent = () => (
   <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-    <h2 className="mb-8 text-4xl font-black tracking-tight text-slate-900">
+    <h2 className="mb-6 sm:mb-8 text-3xl sm:text-4xl font-black tracking-tight text-slate-900">
       API & Events Reference
     </h2>
 
-    <div className="space-y-12">
+    <div className="space-y-8 sm:space-y-12">
       <div>
-        <h3 className="mb-6 font-mono text-xl font-bold text-blue-600">
+        <h3 className="mb-4 sm:mb-6 font-mono text-lg sm:text-xl font-bold text-blue-600">
           LivenessSDK Configuration
         </h3>
-        <div className="overflow-hidden rounded-2xl border border-slate-100">
-          <table className="w-full text-left text-sm">
+        <div className="overflow-x-auto rounded-xl sm:rounded-2xl border border-slate-100">
+          <table className="w-full text-left text-sm min-w-[500px]">
             <thead className="bg-slate-50 font-bold tracking-wider text-slate-500 uppercase">
               <tr>
-                <th className="px-6 py-4">Option</th>
-                <th className="px-6 py-4">Default</th>
-                <th className="px-6 py-4">Description</th>
+                <th className="px-4 sm:px-6 py-3 sm:py-4">Option</th>
+                <th className="px-4 sm:px-6 py-3 sm:py-4">Default</th>
+                <th className="px-4 sm:px-6 py-3 sm:py-4">Description</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -504,11 +505,11 @@ const APIRefContent = () => (
                 },
               ].map((row, i) => (
                 <tr key={i} className="hover:bg-slate-50/50">
-                  <td className="px-6 py-4 font-mono font-bold text-slate-900">
+                  <td className="px-4 sm:px-6 py-3 sm:py-4 font-mono font-bold text-slate-900">
                     {row.name}
                   </td>
-                  <td className="px-6 py-4 text-slate-500">{row.def}</td>
-                  <td className="px-6 py-4 text-slate-500">{row.desc}</td>
+                  <td className="px-4 sm:px-6 py-3 sm:py-4 text-slate-500">{row.def}</td>
+                  <td className="px-4 sm:px-6 py-3 sm:py-4 text-slate-500">{row.desc}</td>
                 </tr>
               ))}
             </tbody>
@@ -517,7 +518,7 @@ const APIRefContent = () => (
       </div>
 
       <div>
-        <h3 className="mb-6 font-bold text-slate-900">Event Registry</h3>
+        <h3 className="mb-4 sm:mb-6 font-bold text-slate-900">Event Registry</h3>
         <div className="space-y-4">
           {[
             { event: "ready", payload: "void", trigger: "Models loaded." },
@@ -539,7 +540,7 @@ const APIRefContent = () => (
           ].map((item, i) => (
             <div
               key={i}
-              className="flex items-center justify-between rounded-xl border border-slate-100 p-4"
+              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-slate-100 p-4"
             >
               <div>
                 <span className="font-mono text-sm font-bold text-blue-600">
@@ -547,7 +548,7 @@ const APIRefContent = () => (
                 </span>
                 <p className="mt-1 text-xs text-slate-500">{item.trigger}</p>
               </div>
-              <span className="rounded bg-slate-100 px-2 py-1 font-mono text-[10px] text-slate-400">
+              <span className="w-fit rounded bg-slate-100 px-2 py-1 font-mono text-[10px] text-slate-400">
                 Payload: {item.payload}
               </span>
             </div>
@@ -561,6 +562,13 @@ const APIRefContent = () => (
 const Documentation = () => {
   const [activePage, setActivePage] = useState("introduction");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const user = api.auth.getCurrentUser();
+
+  const openModal = (path) => {
+    navigate(path, { state: { backgroundLocation: location } });
+  };
 
   const menu = [
     {
@@ -628,43 +636,59 @@ const Documentation = () => {
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 overflow-x-hidden">
       <nav className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-slate-100 bg-white/80 px-4 sm:px-6 md:px-12 backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setMobileMenuOpen(true)}
-            className="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 lg:hidden"
-            aria-label="Open documentation menu"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-          <Link to="/" className="flex items-center">
-            <ShieldCheck className="mr-2 h-6 w-6 text-blue-600 shrink-0" />
-            <span className="text-base sm:text-lg font-bold tracking-tight text-slate-900">
-              Liveness Cloud{" "}
-              <span className="ml-1 font-medium text-slate-400">Docs</span>
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Breadcrumb / Logo */}
+          <nav className="flex items-center" aria-label="Breadcrumb">
+            <Link
+              to={user ? "/dashboard" : "/"}
+              className="flex items-center gap-1.5 group"
+            >
+              <ShieldCheck className="h-5 w-5 text-blue-600 shrink-0" />
+              <span className="hidden sm:inline text-sm font-semibold text-slate-500 group-hover:text-blue-600 transition-colors">
+                {user ? "Dashboard" : "Liveness Cloud"}
+              </span>
+            </Link>
+            <span className="mx-2 text-slate-300 font-light select-none">/</span>
+            <span className="text-sm font-bold text-slate-900">
+              Docs
             </span>
-          </Link>
+          </nav>
         </div>
 
-        <div className="flex items-center space-x-3 sm:space-x-6">
-          <Link
-            to="/login"
-            className="text-xs sm:text-sm font-semibold text-slate-600 transition-colors hover:text-blue-600"
+        <div className="flex items-center gap-3">
+          {/* Actions - hidden on mobile, visible on sm and up */}
+          {!user && (
+            <div className="hidden sm:flex items-center space-x-3 sm:space-x-6">
+              <button
+                onClick={() => openModal("/login")}
+                className="text-xs sm:text-sm font-semibold text-slate-600 transition-colors hover:text-blue-600 cursor-pointer"
+              >
+                Log In
+              </button>
+              <button
+                onClick={() => openModal("/signup")}
+                className="rounded-full bg-blue-600 px-3.5 py-1.5 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-bold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 hover:shadow-xl active:scale-95 shrink-0 cursor-pointer"
+              >
+                Get API Key
+              </button>
+            </div>
+          )}
+
+          {/* Larger, Prominent Burger Menu for Mobile / Tablet */}
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 active:scale-95 transition-all lg:hidden cursor-pointer"
+            aria-label="Open documentation menu"
           >
-            Dashboard
-          </Link>
-          <Link
-            to="/signup"
-            className="rounded-full bg-blue-600 px-3.5 py-1.5 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-bold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 hover:shadow-xl active:scale-95 shrink-0"
-          >
-            Get API Key
-          </Link>
+            <Menu className="h-6 w-6" />
+          </button>
         </div>
       </nav>
 
       {/* Mobile Docs Navigation Drawer */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs lg:hidden"
+          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs lg:hidden cursor-pointer"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
@@ -674,29 +698,56 @@ const Documentation = () => {
           mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
-          <div className="flex items-center">
-            <ShieldCheck className="mr-2 h-6 w-6 text-blue-600" />
-            <span className="font-bold text-slate-900">Documentation</span>
+        <div className="flex flex-col h-full justify-between">
+          <div>
+            <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center">
+                <ShieldCheck className="mr-2 h-6 w-6 text-blue-600" />
+                <span className="font-bold text-slate-900">Documentation</span>
+              </div>
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 cursor-pointer"
+                aria-label="Close menu"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            {renderSidebarContent()}
           </div>
-          <button
-            onClick={() => setMobileMenuOpen(false)}
-            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100"
-            aria-label="Close menu"
-          >
-            <X className="h-5 w-5" />
-          </button>
+
+          {!user && (
+            <div className="mt-8 border-t border-slate-100 pt-6 flex flex-col gap-3">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  openModal("/login");
+                }}
+                className="w-full rounded-xl border border-slate-200 py-2.5 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                Log In
+              </button>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  openModal("/signup");
+                }}
+                className="w-full rounded-xl bg-blue-600 py-2.5 text-center text-sm font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700 transition-colors cursor-pointer"
+              >
+                Get API Key
+              </button>
+            </div>
+          )}
         </div>
-        {renderSidebarContent()}
       </aside>
 
-      <div className="mx-auto flex max-w-7xl">
+      <div className="mx-auto flex max-w-7xl w-full">
         {/* Desktop Sidebar */}
         <aside className="fixed hidden h-[calc(100vh-4rem)] w-72 overflow-y-auto border-r border-slate-100 bg-white p-8 lg:block">
           {renderSidebarContent()}
         </aside>
 
-        <main className="min-h-[calc(100vh-4rem)] flex-1 px-4 sm:px-6 py-8 sm:py-16 lg:ml-72 lg:px-20">
+        <main className="min-h-[calc(100vh-4rem)] flex-1 min-w-0 px-4 sm:px-6 py-8 sm:py-16 lg:ml-72 lg:px-20">
           <div className="mx-auto max-w-4xl">
             {renderContent()}
 

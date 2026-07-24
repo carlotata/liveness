@@ -10,11 +10,17 @@ import {
   Zap,
 } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const Landing = () => {
   const [copied, setCopied] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const openModal = (path) => {
+    navigate(path, { state: { backgroundLocation: location } });
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText("npm i @liveness/sdk");
@@ -53,24 +59,24 @@ const Landing = () => {
           >
             Docs
           </Link>
-          <Link
-            to="/login"
-            className="text-sm font-medium text-slate-600 transition-colors hover:text-blue-600"
+          <button
+            onClick={() => openModal("/login")}
+            className="text-sm font-medium text-slate-600 transition-colors hover:text-blue-600 cursor-pointer"
           >
             Log in
-          </Link>
-          <Link
-            to="/signup"
-            className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg"
+          </button>
+          <button
+            onClick={() => openModal("/signup")}
+            className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg cursor-pointer"
           >
             Get Started
-          </Link>
+          </button>
         </div>
 
         {/* Mobile Menu Button */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 md:hidden"
+          className="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 md:hidden cursor-pointer"
           aria-label="Toggle navigation menu"
         >
           {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -100,20 +106,18 @@ const Landing = () => {
             >
               Docs
             </Link>
-            <Link
-              to="/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-base font-medium text-slate-700 hover:text-blue-600"
+            <button
+              onClick={() => { setMobileMenuOpen(false); openModal("/login"); }}
+              className="text-left text-base font-medium text-slate-700 hover:text-blue-600 cursor-pointer"
             >
               Log in
-            </Link>
-            <Link
-              to="/signup"
-              onClick={() => setMobileMenuOpen(false)}
-              className="rounded-full bg-blue-600 py-3 text-center text-base font-semibold text-white shadow-md hover:bg-blue-700"
+            </button>
+            <button
+              onClick={() => { setMobileMenuOpen(false); openModal("/signup"); }}
+              className="rounded-full bg-blue-600 py-3 text-center text-base font-semibold text-white shadow-md hover:bg-blue-700 cursor-pointer"
             >
               Get Started
-            </Link>
+            </button>
           </div>
         )}
       </nav>
@@ -131,18 +135,18 @@ const Landing = () => {
             integrate.
           </p>
           <div className="flex flex-col items-center justify-center space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
-            <Link
-              to="/signup"
-              className="w-full transform rounded-full bg-blue-600 px-8 py-4 text-center text-base sm:text-lg font-bold text-white shadow-xl transition-all hover:-translate-y-1 hover:bg-blue-700 hover:shadow-2xl sm:w-auto"
+            <button
+              onClick={() => openModal("/signup")}
+              className="w-full transform rounded-full bg-blue-600 px-8 py-4 text-center text-base sm:text-lg font-bold text-white shadow-xl transition-all hover:-translate-y-1 hover:bg-blue-700 hover:shadow-2xl sm:w-auto cursor-pointer"
             >
               Start Building Now
-            </Link>
-            <Link
-              to="/login"
-              className="w-full rounded-full border border-slate-200 bg-white px-8 py-4 text-center text-base sm:text-lg font-bold text-slate-700 transition-all hover:bg-slate-50 sm:w-auto"
+            </button>
+            <button
+              onClick={() => openModal("/login")}
+              className="w-full rounded-full border border-slate-200 bg-white px-8 py-4 text-center text-base sm:text-lg font-bold text-slate-700 transition-all hover:bg-slate-50 sm:w-auto cursor-pointer"
             >
               View Demo
-            </Link>
+            </button>
           </div>
 
           <div className="mx-auto mt-10 max-w-xs sm:max-w-sm md:max-w-md rounded-xl border border-slate-200 bg-slate-950 p-2.5 shadow-md transition-all hover:border-slate-300">
@@ -255,7 +259,7 @@ const Landing = () => {
               </ul>
               <Link
                 to="/signup"
-                className="block w-full rounded-xl bg-slate-100 py-3 text-center font-bold text-slate-900 transition-colors hover:bg-slate-200"
+                className="block w-full rounded-xl bg-slate-100 py-3 text-center font-bold text-slate-900 transition-colors hover:bg-slate-200 cursor-pointer"
               >
                 Start for free
               </Link>
@@ -287,7 +291,7 @@ const Landing = () => {
               </ul>
               <Link
                 to="/signup"
-                className="block w-full rounded-xl bg-white py-3 text-center font-bold text-blue-600 transition-colors hover:bg-blue-50"
+                className="block w-full rounded-xl bg-white py-3 text-center font-bold text-blue-600 transition-colors hover:bg-blue-50 cursor-pointer"
               >
                 Get Pro Access
               </Link>

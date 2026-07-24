@@ -23,7 +23,7 @@ export default function DashboardLayout({ children }) {
 
   const handleLogout = async () => {
     await api.auth.logout();
-    navigate("/login");
+    navigate("/");
   };
 
   const navItems = [
@@ -58,7 +58,7 @@ export default function DashboardLayout({ children }) {
           </Link>
           <button
             onClick={() => setMobileMenuOpen(false)}
-            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 md:hidden"
+            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 md:hidden cursor-pointer"
             aria-label="Close menu"
           >
             <X className="h-6 w-6" />
@@ -72,7 +72,7 @@ export default function DashboardLayout({ children }) {
                 <Link
                   to={item.path}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition-all ${
+                  className={`flex items-center rounded-xl px-4 py-3 text-sm font-semibold transition-all cursor-pointer ${
                     location.pathname === item.path
                       ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
@@ -92,7 +92,7 @@ export default function DashboardLayout({ children }) {
       <div className="border-t border-slate-100 p-6">
         <button
           onClick={handleLogout}
-          className="flex w-full items-center rounded-xl px-4 py-3 text-sm font-semibold text-slate-500 transition-all hover:bg-red-50 hover:text-red-600"
+          className="flex w-full items-center rounded-xl px-4 py-3 text-sm font-semibold text-slate-500 transition-all hover:bg-red-50 hover:text-red-600 cursor-pointer"
         >
           <LogOut className="mr-3 h-5 w-5" />
           Logout
@@ -106,7 +106,7 @@ export default function DashboardLayout({ children }) {
       {/* Mobile Drawer Overlay */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs md:hidden"
+          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs md:hidden cursor-pointer"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
@@ -131,7 +131,7 @@ export default function DashboardLayout({ children }) {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 md:hidden"
+              className="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 md:hidden cursor-pointer"
               aria-label="Open menu"
             >
               <Menu className="h-5 w-5" />

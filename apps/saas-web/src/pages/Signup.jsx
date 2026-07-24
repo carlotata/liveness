@@ -1,6 +1,6 @@
-import { Lock as LockIcon, Mail, ShieldCheck, User } from "lucide-react";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Lock as LockIcon, Mail, ShieldCheck, User, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { api } from "../services/api";
 
@@ -18,7 +18,7 @@ const signupSchema = z
     path: ["confirmPassword"],
   });
 
-export default function Signup() {
+export default function Signup({ modal = false }) {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -30,6 +30,23 @@ export default function Signup() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Close modal on Escape key
+  useEffect(() => {
+    if (!modal) return;
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") handleClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [modal]);
+
+  const handleClose = () => {
+    navigate(location.state?.backgroundLocation?.pathname || "/", {
+      replace: true,
+    });
+  };
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value }));
@@ -45,7 +62,6 @@ export default function Signup() {
     }
 
     setLoading(true);
-
     try {
       await api.auth.signup(
         formData.username,
@@ -54,9 +70,8 @@ export default function Signup() {
         formData.lastName,
         formData.email,
       );
-      // Auto-login after signup
       await api.auth.login(formData.username, formData.password);
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -64,191 +79,230 @@ export default function Signup() {
     }
   };
 
-  return (
-    <div className="flex min-h-screen flex-col justify-center bg-linear-to-br from-slate-50 to-white px-4 py-8 sm:px-6 lg:px-8">
-      <div className="text-center sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="mb-6 flex justify-center">
-          <div className="rounded-2xl bg-blue-600 p-3 shadow-xl shadow-blue-200">
-            <ShieldCheck className="h-10 w-10 text-white" />
+  const inputClass =
+    "block w-full rounded-xl border border-slate-200 bg-slate-50/50 py-3 pr-4 text-sm font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none";
+
+  const formContent = (
+    <div className="w-full">
+      {/* Header */}
+      <div className="mb-6 flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 shadow-lg shadow-blue-200">
+            <ShieldCheck className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-xl font-black tracking-tight text-slate-900">
+              Join the Cloud
+            </h2>
+            <p className="text-xs font-medium text-slate-400">
+              Get started free — no credit card needed
+            </p>
           </div>
         </div>
-        <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900">
-          Join the Cloud
-        </h2>
-        <p className="mt-3 text-sm sm:text-base font-medium text-slate-500">
-          Get started with Liveness Cloud today
-        </p>
+        {modal && (
+          <button
+            type="button"
+            onClick={handleClose}
+            className="rounded-xl p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 active:scale-95 cursor-pointer"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
-      <div className="mt-8 sm:mt-10 sm:mx-auto sm:w-full sm:max-w-xl">
-        <div className="rounded-3xl sm:rounded-[2.5rem] border border-slate-100 bg-white px-5 py-8 sm:px-8 sm:py-10 shadow-2xl shadow-slate-200">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {error && (
-              <div className="rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-semibold text-red-600">
-                {error}
-              </div>
-            )}
+      <form className="space-y-4" onSubmit={handleSubmit}>
+        {error && (
+          <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">
+            {error}
+          </div>
+        )}
 
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <div>
-                <label
-                  htmlFor="firstName"
-                  className="mb-2 ml-1 block text-sm font-bold text-slate-700"
-                >
-                  First Name
-                </label>
-                <input
-                  id="firstName"
-                  type="text"
-                  required
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  className="block w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-3 font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none sm:text-sm"
-                  placeholder="John"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="lastName"
-                  className="mb-2 ml-1 block text-sm font-bold text-slate-700"
-                >
-                  Last Name
-                </label>
-                <input
-                  id="lastName"
-                  type="text"
-                  required
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  className="block w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-3 font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none sm:text-sm"
-                  placeholder="Doe"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="email"
-                className="mb-2 ml-1 block text-sm font-bold text-slate-700"
-              >
-                Email Address
-              </label>
-              <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                  <Mail className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="block w-full rounded-2xl border border-slate-200 bg-slate-50/50 py-3 pr-4 pl-11 font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none sm:text-sm"
-                  placeholder="john@example.com"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="username"
-                className="mb-2 ml-1 block text-sm font-bold text-slate-700"
-              >
-                Username
-              </label>
-              <div className="relative">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                  <User className="h-5 w-5 text-slate-400" />
-                </div>
-                <input
-                  id="username"
-                  type="text"
-                  required
-                  value={formData.username}
-                  onChange={handleChange}
-                  className="block w-full rounded-2xl border border-slate-200 bg-slate-50/50 py-3 pr-4 pl-11 font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none sm:text-sm"
-                  placeholder="johndoe123"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <div>
-                <label
-                  htmlFor="password"
-                  className="mb-2 ml-1 block text-sm font-bold text-slate-700"
-                >
-                  Password
-                </label>
-                <div className="relative">
-                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                    <LockIcon className="h-5 w-5 text-slate-400" />
-                  </div>
-                  <input
-                    id="password"
-                    type="password"
-                    required
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="block w-full rounded-2xl border border-slate-200 bg-slate-50/50 py-3 pr-4 pl-11 font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none sm:text-sm"
-                    placeholder="••••••••"
-                  />
-                </div>
-              </div>
-              <div>
-                <label
-                  htmlFor="confirmPassword"
-                  className="mb-2 ml-1 block text-sm font-bold text-slate-700"
-                >
-                  Confirm
-                </label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  required
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="block w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-3 font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none sm:text-sm"
-                  placeholder="Repeat"
-                />
-              </div>
-            </div>
-
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex w-full justify-center rounded-2xl bg-blue-600 px-4 py-4 text-sm font-black text-white shadow-xl shadow-blue-200 transition-all hover:-translate-y-0.5 hover:bg-blue-700 focus:ring-4 focus:ring-blue-500/20 focus:outline-none active:translate-y-0 disabled:opacity-50"
-              >
-                {loading
-                  ? "Creating your account..."
-                  : "Start Building for Free"}
-              </button>
-            </div>
-          </form>
-
-          <div className="mt-8">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-100" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-4 font-medium text-slate-500">
-                  Already have an account?
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-6 text-center">
-              <Link
-                to="/login"
-                className="text-sm font-bold text-blue-600 transition-colors hover:text-blue-700"
-              >
-                Log in to your console &rarr;
-              </Link>
-            </div>
+        {/* Name row */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label
+              htmlFor="firstName"
+              className="mb-1.5 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
+            >
+              First Name
+            </label>
+            <input
+              id="firstName"
+              type="text"
+              required
+              autoFocus
+              value={formData.firstName}
+              onChange={handleChange}
+              className={inputClass + " px-4"}
+              placeholder="John"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="lastName"
+              className="mb-1.5 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
+            >
+              Last Name
+            </label>
+            <input
+              id="lastName"
+              type="text"
+              required
+              value={formData.lastName}
+              onChange={handleChange}
+              className={inputClass + " px-4"}
+              placeholder="Doe"
+            />
           </div>
         </div>
+
+        {/* Email */}
+        <div>
+          <label
+            htmlFor="email"
+            className="mb-1.5 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
+          >
+            Email Address
+          </label>
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+              <Mail className="h-4 w-4 text-slate-400" />
+            </div>
+            <input
+              id="email"
+              type="email"
+              required
+              value={formData.email}
+              onChange={handleChange}
+              className={inputClass + " pl-10"}
+              placeholder="john@example.com"
+            />
+          </div>
+        </div>
+
+        {/* Username */}
+        <div>
+          <label
+            htmlFor="username"
+            className="mb-1.5 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
+          >
+            Username
+          </label>
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+              <User className="h-4 w-4 text-slate-400" />
+            </div>
+            <input
+              id="username"
+              type="text"
+              required
+              value={formData.username}
+              onChange={handleChange}
+              className={inputClass + " pl-10"}
+              placeholder="johndoe123"
+            />
+          </div>
+        </div>
+
+        {/* Password row */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label
+              htmlFor="password"
+              className="mb-1.5 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
+            >
+              Password
+            </label>
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                <LockIcon className="h-4 w-4 text-slate-400" />
+              </div>
+              <input
+                id="password"
+                type="password"
+                required
+                value={formData.password}
+                onChange={handleChange}
+                className={inputClass + " pl-10"}
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
+          <div>
+            <label
+              htmlFor="confirmPassword"
+              className="mb-1.5 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
+            >
+              Confirm
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              required
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              className={inputClass + " px-4"}
+              placeholder="Repeat"
+            />
+          </div>
+        </div>
+
+        <div className="pt-1">
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex w-full justify-center rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-200 transition-all hover:-translate-y-0.5 hover:bg-blue-700 focus:ring-4 focus:ring-blue-500/20 focus:outline-none active:translate-y-0 disabled:opacity-50 cursor-pointer"
+          >
+            {loading ? "Creating your account..." : "Start Building for Free"}
+          </button>
+        </div>
+      </form>
+
+      <div className="mt-5">
+        <div className="relative flex items-center justify-center">
+          <div className="flex-1 border-t border-slate-100" />
+          <span className="mx-4 text-xs font-medium text-slate-400">
+            Already have an account?
+          </span>
+          <div className="flex-1 border-t border-slate-100" />
+        </div>
+        <div className="mt-4 text-center">
+          <Link
+            to="/login"
+            state={modal ? location.state : undefined}
+            className="text-sm font-bold text-blue-600 transition-colors hover:text-blue-700"
+          >
+            Log in to your console &rarr;
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (modal) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+          onClick={handleClose}
+        />
+        {/* Modal Card */}
+        <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
+          <div className="rounded-3xl border border-slate-100 bg-white p-7 shadow-2xl">
+            {formContent}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Standalone full-page fallback (direct URL access)
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-white px-4 py-12">
+      <div className="w-full max-w-md rounded-3xl border border-slate-100 bg-white p-7 shadow-2xl shadow-slate-200">
+        {formContent}
       </div>
     </div>
   );
