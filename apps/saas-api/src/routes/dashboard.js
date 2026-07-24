@@ -6,7 +6,7 @@ import logRoutes from "./log.routes.js";
 import statsRoutes from "./stats.routes.js";
 import userRoutes from "./user.routes.js";
 import webhookRoutes from "./webhook.routes.js";
-import changePasswordRoute from "./change-password.routes.js";
+
 const router = Router();
 
 router.use(authRoutes);
@@ -16,6 +16,5 @@ router.use("/billing", billingRoutes);
 router.use("/logs", logRoutes);
 router.use("/webhooks", webhookRoutes);
 router.use("/users", userRoutes);
-router.use("/change-password", changePasswordRoute);
 
 export default router;
