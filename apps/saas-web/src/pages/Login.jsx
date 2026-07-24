@@ -38,23 +38,23 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col justify-center bg-linear-to-br from-slate-50 to-white py-12 sm:px-6 lg:px-8">
+    <div className="flex min-h-screen flex-col justify-center bg-linear-to-br from-slate-50 to-white px-4 py-8 sm:px-6 lg:px-8">
       <div className="text-center sm:mx-auto sm:w-full sm:max-w-md">
         <div className="mb-6 flex justify-center">
           <div className="rounded-2xl bg-blue-600 p-3 shadow-xl shadow-blue-200">
             <ShieldCheck className="h-10 w-10 text-white" />
           </div>
         </div>
-        <h2 className="text-4xl font-black tracking-tight text-slate-900">
+        <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900">
           Welcome Back
         </h2>
-        <p className="mt-3 font-medium text-slate-500">
+        <p className="mt-3 text-sm sm:text-base font-medium text-slate-500">
           Sign in to manage your liveness services
         </p>
       </div>
 
-      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="rounded-[2.5rem] border border-slate-100 bg-white px-8 py-10 shadow-2xl shadow-slate-200">
+      <div className="mt-8 sm:mt-10 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="rounded-3xl sm:rounded-[2.5rem] border border-slate-100 bg-white px-5 py-8 sm:px-8 sm:py-10 shadow-2xl shadow-slate-200">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
               <div className="animate-shake rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-semibold text-red-600">

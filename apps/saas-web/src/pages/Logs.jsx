@@ -41,17 +41,17 @@ export default function Logs() {
     <div className="animate-in fade-in slide-in-from-bottom-4 space-y-6 duration-500">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
             Audit Logs
           </h1>
-          <p className="mt-1 font-medium text-slate-500">
+          <p className="mt-1 text-xs sm:text-sm font-medium text-slate-500">
             Detailed history of verification requests
           </p>
         </div>
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative w-full max-w-sm">
+        <div className="relative w-full sm:max-w-sm">
           <Search className="absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
@@ -73,16 +73,16 @@ export default function Logs() {
         </select>
       </div>
 
-      <div className="overflow-hidden rounded-4xl border border-slate-100 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-3xl sm:rounded-4xl border border-slate-100 bg-white shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-sm min-w-[650px]">
             <thead>
               <tr className="bg-slate-50/50 text-[10px] font-black tracking-[0.15em] text-slate-400 uppercase">
-                <th className="px-8 py-5">Result</th>
-                <th className="px-8 py-5">Subject</th>
-                <th className="px-8 py-5">Confidence</th>
-                <th className="px-8 py-5">Analysis</th>
-                <th className="px-8 py-5 text-right">Timestamp</th>
+                <th className="px-4 sm:px-8 py-4 sm:py-5">Result</th>
+                <th className="px-4 sm:px-8 py-4 sm:py-5">Subject</th>
+                <th className="px-4 sm:px-8 py-4 sm:py-5">Confidence</th>
+                <th className="px-4 sm:px-8 py-4 sm:py-5">Analysis</th>
+                <th className="px-4 sm:px-8 py-4 sm:py-5 text-right">Timestamp</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -91,9 +91,9 @@ export default function Logs() {
                   key={log.id}
                   className="group transition-colors hover:bg-slate-50/50"
                 >
-                  <td className="px-8 py-5">
+                  <td className="px-4 sm:px-8 py-4 sm:py-5">
                     <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1 text-[10px] font-black tracking-wider uppercase ${
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 sm:px-4 py-1 text-[10px] font-black tracking-wider uppercase ${
                         log.status === "SUCCESS"
                           ? "bg-emerald-100 text-emerald-700"
                           : log.status === "ENROLLED"
@@ -111,17 +111,17 @@ export default function Logs() {
                       {log.status}
                     </span>
                   </td>
-                  <td className="px-8 py-5 font-bold text-slate-900 transition-colors group-hover:text-blue-600">
+                  <td className="px-4 sm:px-8 py-4 sm:py-5 font-bold text-slate-900 transition-colors group-hover:text-blue-600">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100">
                         <User className="h-4 w-4 text-slate-400" />
                       </div>
-                      {log.userName}
+                      <span className="truncate">{log.userName}</span>
                     </div>
                   </td>
-                  <td className="px-8 py-5">
+                  <td className="px-4 sm:px-8 py-4 sm:py-5">
                     <div className="flex items-center gap-3">
-                      <div className="h-2 max-w-25 flex-1 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-2 w-16 sm:w-24 overflow-hidden rounded-full bg-slate-100">
                         <div
                           className={`h-full rounded-full ${log.status === "SUCCESS" || log.status === "ENROLLED" ? "bg-emerald-500" : "bg-red-500"}`}
                           style={{ width: `${log.score * 100}%` }}
@@ -132,9 +132,9 @@ export default function Logs() {
                       </span>
                     </div>
                   </td>
-                  <td className="px-8 py-5">
+                  <td className="px-4 sm:px-8 py-4 sm:py-5">
                     {log.antiSpoofing ? (
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-3 sm:gap-4">
                         <div className="flex flex-col">
                           <span className="text-[10px] font-black tracking-wider text-slate-400 uppercase">
                             Depth
@@ -145,7 +145,7 @@ export default function Logs() {
                             {log.antiSpoofing.depthVariance.toFixed(4)}
                           </span>
                         </div>
-                        <div className="flex flex-col border-l border-slate-100 pl-4">
+                        <div className="flex flex-col border-l border-slate-100 pl-3 sm:pl-4">
                           <span className="text-[10px] font-black tracking-wider text-slate-400 uppercase">
                             Texture
                           </span>
@@ -162,9 +162,9 @@ export default function Logs() {
                       </span>
                     )}
                   </td>
-                  <td className="px-8 py-5 text-right font-semibold text-slate-500">
-                    <div className="flex items-center justify-end gap-2">
-                      <Clock className="h-3.5 w-3.5 text-slate-300" />
+                  <td className="px-4 sm:px-8 py-4 sm:py-5 text-right font-semibold text-slate-500">
+                    <div className="flex items-center justify-end gap-2 text-xs">
+                      <Clock className="h-3.5 w-3.5 text-slate-300 shrink-0" />
                       {new Date(log.timestamp).toLocaleString(undefined, {
                         month: "short",
                         day: "numeric",
@@ -177,7 +177,7 @@ export default function Logs() {
               ))}
               {logs.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-8 py-16 text-center">
+                  <td colSpan="5" className="px-4 sm:px-8 py-16 text-center">
                     <div className="flex flex-col items-center">
                       <Activity className="mb-4 h-12 w-12 text-slate-100" />
                       <p className="text-xs font-bold tracking-widest text-slate-400 uppercase">
@@ -188,7 +188,7 @@ export default function Logs() {
                 </tr>
               ) : filteredLogs.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-8 py-16 text-center">
+                  <td colSpan="5" className="px-4 sm:px-8 py-16 text-center">
                     <div className="flex flex-col items-center">
                       <Activity className="mb-4 h-12 w-12 text-slate-100" />
                       <p className="text-xs font-bold tracking-widest text-slate-400 uppercase">

@@ -8,8 +8,10 @@ import {
   FileCode,
   Key,
   Layers,
+  Menu,
   ShieldCheck,
   Terminal,
+  X,
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -44,14 +46,14 @@ const CodeBlock = ({ code, language, title }) => (
           <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/80"></div>
         </div>
         {title && (
-          <span className="text-xs font-medium text-slate-400">{title}</span>
+          <span className="text-xs font-medium text-slate-400 truncate max-w-[200px] sm:max-w-none">{title}</span>
         )}
       </div>
-      <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
+      <span className="text-[10px] sm:text-xs font-semibold tracking-wider text-slate-500 uppercase shrink-0">
         {language}
       </span>
     </div>
-    <pre className="overflow-x-auto p-6 text-sm leading-relaxed">
+    <pre className="overflow-x-auto p-4 sm:p-6 text-xs sm:text-sm leading-relaxed">
       <code>{code}</code>
     </pre>
   </div>
@@ -62,17 +64,17 @@ const IntroContent = () => (
     <div className="mb-6 inline-flex items-center rounded-full bg-blue-50 px-4 py-1.5 text-xs font-bold text-blue-700">
       <Book className="mr-2 h-3.5 w-3.5" /> Documentation v1.0.0
     </div>
-    <h1 className="mb-8 text-5xl font-black tracking-tight text-slate-900 md:text-6xl">
+    <h1 className="mb-6 sm:mb-8 text-3xl sm:text-5xl font-black tracking-tight text-slate-900 md:text-6xl">
       Liveness SDK
     </h1>
-    <p className="mb-12 text-2xl leading-relaxed text-slate-600">
+    <p className="mb-8 sm:mb-12 text-lg sm:text-2xl leading-relaxed text-slate-600">
       The industry-standard JavaScript SDK for browser-based Active Liveness
       Detection and Biometric Identity Verification.
     </p>
 
     <div className="grid gap-6 md:grid-cols-2">
-      <div className="rounded-3xl border border-slate-100 bg-white p-8">
-        <h3 className="mb-4 flex items-center text-xl font-bold">
+      <div className="rounded-3xl border border-slate-100 bg-white p-6 sm:p-8">
+        <h3 className="mb-4 flex items-center text-lg sm:text-xl font-bold">
           <Terminal className="mr-2 h-5 w-5 text-blue-600" /> For Developers
         </h3>
         <p className="mb-6 text-sm text-slate-500">
@@ -81,21 +83,21 @@ const IntroContent = () => (
         </p>
         <ul className="mb-8 space-y-3">
           <li className="flex items-center text-sm text-slate-600">
-            <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" /> Simple
+            <CheckCircle2 className="mr-2 h-4 w-4 text-green-500 shrink-0" /> Simple
             Event-Driven API
           </li>
           <li className="flex items-center text-sm text-slate-600">
-            <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" /> GPU/WASM
+            <CheckCircle2 className="mr-2 h-4 w-4 text-green-500 shrink-0" /> GPU/WASM
             Accelerated
           </li>
           <li className="flex items-center text-sm text-slate-600">
-            <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" /> 100%
+            <CheckCircle2 className="mr-2 h-4 w-4 text-green-500 shrink-0" /> 100%
             Client-Side Processing
           </li>
         </ul>
       </div>
-      <div className="rounded-3xl border border-slate-100 bg-white p-8">
-        <h3 className="mb-4 flex items-center text-xl font-bold">
+      <div className="rounded-3xl border border-slate-100 bg-white p-6 sm:p-8">
+        <h3 className="mb-4 flex items-center text-lg sm:text-xl font-bold">
           <Cloud className="mr-2 h-5 w-5 text-blue-600" /> For Enterprises
         </h3>
         <p className="mb-6 text-sm text-slate-500">
@@ -104,15 +106,15 @@ const IntroContent = () => (
         </p>
         <ul className="mb-8 space-y-3">
           <li className="flex items-center text-sm text-slate-600">
-            <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" /> Centralized
+            <CheckCircle2 className="mr-2 h-4 w-4 text-green-500 shrink-0" /> Centralized
             API Key Management
           </li>
           <li className="flex items-center text-sm text-slate-600">
-            <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" /> Webhook
+            <CheckCircle2 className="mr-2 h-4 w-4 text-green-500 shrink-0" /> Webhook
             Integrations
           </li>
           <li className="flex items-center text-sm text-slate-600">
-            <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" /> Secure
+            <CheckCircle2 className="mr-2 h-4 w-4 text-green-500 shrink-0" /> Secure
             Identity Vault
           </li>
         </ul>
@@ -558,6 +560,7 @@ const APIRefContent = () => (
 
 const Documentation = () => {
   const [activePage, setActivePage] = useState("introduction");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const menu = [
     {
@@ -594,63 +597,110 @@ const Documentation = () => {
     }
   };
 
+  const renderSidebarContent = () => (
+    <>
+      {menu.map((group, idx) => (
+        <div key={idx} className="mb-8">
+          <h5 className="mb-3 px-4 text-xs font-bold tracking-widest text-slate-400 uppercase">
+            {group.title}
+          </h5>
+          <ul className="space-y-1">
+            {group.items.map((item) => (
+              <SidebarItem
+                key={item.id}
+                id={item.id}
+                label={item.label}
+                activeId={activePage}
+                onClick={(id) => {
+                  setActivePage(id);
+                  setMobileMenuOpen(false);
+                  window.scrollTo(0, 0);
+                }}
+                icon={item.icon}
+              />
+            ))}
+          </ul>
+        </div>
+      ))}
+    </>
+  );
+
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900">
-      <nav className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-slate-100 bg-white/80 px-6 backdrop-blur-md md:px-12">
-        <Link to="/" className="flex items-center">
-          <ShieldCheck className="mr-2 h-6 w-6 text-blue-600" />
-          <span className="text-lg font-bold tracking-tight text-slate-900">
-            Liveness Cloud{" "}
-            <span className="ml-1 font-medium text-slate-400">Docs</span>
-          </span>
-        </Link>
-        <div className="flex items-center space-x-6">
+    <div className="min-h-screen bg-white font-sans text-slate-900 overflow-x-hidden">
+      <nav className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-slate-100 bg-white/80 px-4 sm:px-6 md:px-12 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-50 lg:hidden"
+            aria-label="Open documentation menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <Link to="/" className="flex items-center">
+            <ShieldCheck className="mr-2 h-6 w-6 text-blue-600 shrink-0" />
+            <span className="text-base sm:text-lg font-bold tracking-tight text-slate-900">
+              Liveness Cloud{" "}
+              <span className="ml-1 font-medium text-slate-400">Docs</span>
+            </span>
+          </Link>
+        </div>
+
+        <div className="flex items-center space-x-3 sm:space-x-6">
           <Link
             to="/login"
-            className="text-sm font-semibold text-slate-600 transition-colors hover:text-blue-600"
+            className="text-xs sm:text-sm font-semibold text-slate-600 transition-colors hover:text-blue-600"
           >
             Dashboard
           </Link>
           <Link
             to="/signup"
-            className="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 hover:shadow-xl active:scale-95"
+            className="rounded-full bg-blue-600 px-3.5 py-1.5 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-bold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 hover:shadow-xl active:scale-95 shrink-0"
           >
             Get API Key
           </Link>
         </div>
       </nav>
 
+      {/* Mobile Docs Navigation Drawer */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs lg:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white p-6 shadow-2xl transition-transform duration-300 overflow-y-auto lg:hidden ${
+          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
+          <div className="flex items-center">
+            <ShieldCheck className="mr-2 h-6 w-6 text-blue-600" />
+            <span className="font-bold text-slate-900">Documentation</span>
+          </div>
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100"
+            aria-label="Close menu"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        {renderSidebarContent()}
+      </aside>
+
       <div className="mx-auto flex max-w-7xl">
+        {/* Desktop Sidebar */}
         <aside className="fixed hidden h-[calc(100vh-4rem)] w-72 overflow-y-auto border-r border-slate-100 bg-white p-8 lg:block">
-          {menu.map((group, idx) => (
-            <div key={idx} className="mb-10">
-              <h5 className="mb-4 px-4 text-xs font-bold tracking-widest text-slate-400 uppercase">
-                {group.title}
-              </h5>
-              <ul className="space-y-1">
-                {group.items.map((item) => (
-                  <SidebarItem
-                    key={item.id}
-                    id={item.id}
-                    label={item.label}
-                    activeId={activePage}
-                    onClick={(id) => {
-                      setActivePage(id);
-                      window.scrollTo(0, 0);
-                    }}
-                    icon={item.icon}
-                  />
-                ))}
-              </ul>
-            </div>
-          ))}
+          {renderSidebarContent()}
         </aside>
 
-        <main className="min-h-[calc(100vh-4rem)] flex-1 px-6 py-16 lg:ml-72 lg:px-20">
+        <main className="min-h-[calc(100vh-4rem)] flex-1 px-4 sm:px-6 py-8 sm:py-16 lg:ml-72 lg:px-20">
           <div className="mx-auto max-w-4xl">
             {renderContent()}
 
-            <div className="mt-32 flex justify-between border-t border-slate-100 pt-12">
+            <div className="mt-16 sm:mt-24 md:mt-32 flex justify-between border-t border-slate-100 pt-8 sm:pt-12">
               <div></div>
               <button
                 onClick={() => {
@@ -667,10 +717,10 @@ const Documentation = () => {
                 className="group flex items-center gap-3 text-right"
               >
                 <div>
-                  <span className="mb-1 block text-xs font-bold tracking-widest text-slate-400 uppercase">
+                  <span className="mb-1 block text-[10px] sm:text-xs font-bold tracking-widest text-slate-400 uppercase">
                     Next Page
                   </span>
-                  <span className="block text-lg font-bold text-slate-900 transition-colors group-hover:text-blue-600">
+                  <span className="block text-sm sm:text-lg font-bold text-slate-900 transition-colors group-hover:text-blue-600">
                     {menu.flatMap((g) => g.items)[
                       menu
                         .flatMap((g) => g.items)
@@ -678,33 +728,33 @@ const Documentation = () => {
                     ]?.label || "End of Docs"}
                   </span>
                 </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 transition-all group-hover:border-blue-600 group-hover:bg-blue-50">
+                <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-slate-200 transition-all group-hover:border-blue-600 group-hover:bg-blue-50 shrink-0">
                   <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-blue-600" />
                 </div>
               </button>
             </div>
 
-            <footer className="mt-20 border-t border-slate-100 pt-16 text-center text-slate-400">
-              <p className="mb-6 font-medium">
+            <footer className="mt-12 sm:mt-20 border-t border-slate-100 pt-10 sm:pt-16 text-center text-slate-400">
+              <p className="mb-6 font-medium text-xs sm:text-sm">
                 &copy; {new Date().getFullYear()} Liveness Cloud Platform. MIT
                 Licensed.
               </p>
-              <div className="flex justify-center space-x-8">
+              <div className="flex justify-center space-x-6 sm:space-x-8">
                 <Link
                   to="/"
-                  className="text-sm font-semibold transition-colors hover:text-blue-600"
+                  className="text-xs sm:text-sm font-semibold transition-colors hover:text-blue-600"
                 >
                   Home
                 </Link>
                 <Link
                   to="/login"
-                  className="text-sm font-semibold transition-colors hover:text-blue-600"
+                  className="text-xs sm:text-sm font-semibold transition-colors hover:text-blue-600"
                 >
                   Dashboard
                 </Link>
                 <Link
                   to="/signup"
-                  className="text-sm font-semibold transition-colors hover:text-blue-600"
+                  className="text-xs sm:text-sm font-semibold transition-colors hover:text-blue-600"
                 >
                   Pricing
                 </Link>
