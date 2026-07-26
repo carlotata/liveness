@@ -6,6 +6,7 @@ import { LivenessPipeline } from "./validators/LivenessPipeline";
 import { DebugOverlayRenderer } from "./rendering/DebugOverlayRenderer";
 import { MediaPipeFaceDetector } from "./providers/MediaPipeFaceDetector";
 import { MobileNetFeatureExtractor } from "./providers/MobileNetFeatureExtractor";
+import { FaceDataCollector } from "./services/FaceDataCollector";
 
 const DEFAULT_CONFIG = {
   blinkEARThreshold: 0.25,
@@ -22,14 +23,15 @@ const DEFAULT_CONFIG = {
   maxBrightness: 0.95,
   maxFFTPeak: 180.0,
   challenges: null,
+  minIdentitySimilarity: 0.70,
 };
 
 /**
  * LivenessEngine orchestrates face detection, challenge validation, anti-spoofing, and feature extraction.
  * Refactored using SOLID principles:
- * - SRP: Delegates rendering, model execution, validation, and challenge strategies to dedicated modules.
+ * - SRP: Delegates rendering, model execution, validation, challenge strategies, and face data collection to dedicated modules.
  * - OCP: Open to custom challenges (via ChallengeRegistry) and custom validators (via LivenessPipeline).
- * - DIP: Depends on abstractions (faceDetector, featureExtractor, pipeline) which can be injected.
+ * - DIP: Depends on abstractions (faceDetector, featureExtractor, pipeline, faceDataCollector) which can be injected.
  */
 export class LivenessEngine {
   #faceDetector;
@@ -37,6 +39,7 @@ export class LivenessEngine {
   #challengeRegistry;
   #pipeline;
   #overlayRenderer;
+  #faceDataCollector;
 
   #callbacks;
   #config;
@@ -77,6 +80,11 @@ export class LivenessEngine {
     this.#pipeline = config.pipeline || new LivenessPipeline();
     this.#overlayRenderer =
       config.overlayRenderer || new DebugOverlayRenderer();
+    this.#faceDataCollector =
+      config.faceDataCollector ||
+      new FaceDataCollector({
+        minSimilarityThreshold: this.#config.minIdentitySimilarity,
+      });
   }
 
   async load() {
@@ -112,6 +120,7 @@ export class LivenessEngine {
     this.#currentChallengeIndex = 0;
     this.#lastChallengeTime = Date.now();
     this.#lastFrameTime = 0;
+    this.#faceDataCollector.clear();
 
     this.#activeChallenges = this.#challengeRegistry.resolveSequence(
       this.#config.challenges,
@@ -203,7 +212,9 @@ export class LivenessEngine {
 
     if (evaluation.passed) {
       this.#isChallengeProcessing = true;
-      setTimeout(() => this.#moveToNextChallenge(), 300);
+      this.#recordChallengeFaceData(landmarks, currentStrategy.type).finally(() => {
+        setTimeout(() => this.#moveToNextChallenge(), 300);
+      });
     } else if (
       Date.now() - this.#lastChallengeTime >
       this.#config.challengeTimeout
@@ -213,6 +224,44 @@ export class LivenessEngine {
         message: `Challenge timed out: ${currentStrategy.type}`,
       });
     }
+  }
+
+  async #recordChallengeFaceData(landmarks, challengeType) {
+    try {
+      const descriptor = await this.#extractDescriptorFromLandmarks(landmarks);
+      this.#faceDataCollector.recordChallengeData({
+        challengeType,
+        descriptor,
+        landmarks,
+        timestamp: Date.now(),
+      });
+    } catch (err) {
+      console.warn(`Failed to capture face data for challenge ${challengeType}:`, err);
+    }
+  }
+
+  async #extractDescriptorFromLandmarks(landmarks) {
+    const inputSize = this.#featureExtractor.getInputSize();
+    const faceTensor = this.#getFaceTensor(inputSize, landmarks);
+    return await this.#extractDescriptorFromTensor(faceTensor);
+  }
+
+  async #extractDescriptorFromTensor(faceTensor) {
+    const standardizedTensor = tf.tidy(() => {
+      const mean = faceTensor.mean();
+      const std = faceTensor
+        .sub(mean)
+        .square()
+        .mean()
+        .sqrt()
+        .add(tf.scalar(1e-5));
+      return faceTensor.sub(mean).div(std);
+    });
+
+    const descriptorArray =
+      await this.#featureExtractor.extractDescriptor(standardizedTensor);
+    tf.dispose([faceTensor, standardizedTensor]);
+    return descriptorArray;
   }
 
   #failChallenge(error) {
@@ -251,36 +300,39 @@ export class LivenessEngine {
         return this.#failChallenge(validationResult.error);
       }
 
-      const standardizedTensor = tf.tidy(() => {
-        const mean = faceTensor.mean();
-        const std = faceTensor
-          .sub(mean)
-          .square()
-          .mean()
-          .sqrt()
-          .add(tf.scalar(1e-5));
-        return faceTensor.sub(mean).div(std);
-      });
+      const finalDescriptor = await this.#extractDescriptorFromTensor(faceTensor);
 
-      const descriptorArray =
-        await this.#featureExtractor.extractDescriptor(standardizedTensor);
-      tf.dispose([faceTensor, standardizedTensor]);
+      const continuityResult = this.#faceDataCollector.verifyIdentityContinuity(
+        this.#config.minIdentitySimilarity,
+      );
+
+      if (!continuityResult.passed) {
+        return this.#failChallenge(continuityResult.error);
+      }
+
+      const aggregateDescriptor =
+        this.#faceDataCollector.getAggregateDescriptor() || finalDescriptor;
 
       const timestamp = Date.now();
       const sessionToken = this.#config.sessionToken || "local-session";
       const integrity = generateIntegrityHash(
-        descriptorArray,
+        aggregateDescriptor,
         sessionToken,
         timestamp,
       );
 
       this.#callbacks.onSuccess({
-        descriptor: descriptorArray,
+        descriptor: aggregateDescriptor,
+        challengeFaceData: this.#faceDataCollector.getRecords(),
         sessionToken,
         timestamp,
         challenges: this.#activeChallenges.map((c) => c.type),
         integrity,
         antiSpoofing: validationResult.antiSpoofing,
+        identityContinuity: {
+          passed: continuityResult.passed,
+          minSimilarity: continuityResult.minSimilarity,
+        },
       });
     } catch (error) {
       console.error("Face recognition failed:", error);

@@ -97,4 +97,56 @@ describe("LivenessEngine Custom Challenges", () => {
     expect(["TURN_RIGHT", "BLINK"]).toContain(callbacks.onChallengeChanged.mock.calls[0][0]);
     engine.stop();
   });
+
+  it("should integrate FaceDataCollector and verify identity continuity on completion", async () => {
+    const callbacks = {
+      onReady: vi.fn(),
+      onSuccess: vi.fn(),
+      onFailure: vi.fn(),
+      onChallengeChanged: vi.fn(),
+    };
+
+    const mockDetector = {
+      load: vi.fn().mockResolvedValue(),
+      onResults: vi.fn(),
+      send: vi.fn(),
+    };
+
+    const mockExtractor = {
+      load: vi.fn().mockResolvedValue(),
+      getInputSize: () => [224, 224],
+      extractDescriptor: vi.fn().mockResolvedValue([1, 0, 0]),
+    };
+
+    const mockPipeline = {
+      execute: vi.fn().mockResolvedValue({ passed: true, antiSpoofing: { passed: true } }),
+    };
+
+    const mockFaceCollector = {
+      clear: vi.fn(),
+      recordChallengeData: vi.fn(),
+      getRecords: vi.fn().mockReturnValue([
+        { challengeType: "WAITING", descriptor: [1, 0, 0] },
+      ]),
+      verifyIdentityContinuity: vi.fn().mockReturnValue({ passed: true, minSimilarity: 1.0 }),
+      getAggregateDescriptor: vi.fn().mockReturnValue([1, 0, 0]),
+    };
+
+    const engine = new LivenessEngine(callbacks, {
+      faceDetector: mockDetector,
+      featureExtractor: mockExtractor,
+      pipeline: mockPipeline,
+      faceDataCollector: mockFaceCollector,
+      challenges: ["WAITING"],
+    });
+
+    await engine.load();
+    const mockVideo = { readyState: 4 };
+    const mockCanvasCtx = { clearRect: vi.fn() };
+
+    engine.start(mockVideo, mockCanvasCtx);
+    expect(mockFaceCollector.clear).toHaveBeenCalled();
+    engine.stop();
+  });
 });
+
