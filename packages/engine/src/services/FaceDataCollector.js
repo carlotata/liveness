@@ -19,7 +19,7 @@ export class FaceDataCollector {
 
   /**
    * Record face data for a specific challenge.
-   * @param {Object} data - { challengeType, descriptor, landmarks, timestamp }
+   * @param {Object} data - { challengeType, descriptor, landmarks, timestamp, qualityScore }
    */
   recordChallengeData(data) {
     if (!data || !data.descriptor || !Array.isArray(data.descriptor)) {
@@ -27,11 +27,26 @@ export class FaceDataCollector {
         "Invalid challenge face data: descriptor array is required.",
       );
     }
+
+    // Assign default pose-quality weight if qualityScore is not provided
+    const defaultQualityWeights = {
+      WAITING: 1.0,
+      BLINK: 0.9,
+      SMILE: 0.85,
+      TURN_LEFT: 0.7,
+      TURN_RIGHT: 0.7,
+    };
+    const qualityScore =
+      data.qualityScore ??
+      defaultQualityWeights[data.challengeType] ??
+      0.8;
+
     this.#records.push({
       challengeType: data.challengeType || "UNKNOWN",
       descriptor: [...data.descriptor],
       landmarks: data.landmarks ? [...data.landmarks] : null,
       timestamp: data.timestamp || Date.now(),
+      qualityScore,
     });
   }
 
@@ -88,34 +103,39 @@ export class FaceDataCollector {
   }
 
   /**
-   * Computes normalized centroid (mean) feature descriptor across all recorded challenges.
+   * Computes quality-weighted normalized centroid feature descriptor across all recorded challenges.
    * @returns {Array<number>|null} Aggregated feature vector normalized to unit length.
    */
   getAggregateDescriptor() {
     if (this.#records.length === 0) return null;
     const dimension = this.#records[0].descriptor.length;
-    const meanVector = new Array(dimension).fill(0);
+    const weightedVector = new Array(dimension).fill(0);
+    let totalWeight = 0;
 
     for (const record of this.#records) {
+      const weight = record.qualityScore ?? 1.0;
+      totalWeight += weight;
       for (let i = 0; i < dimension; i++) {
-        meanVector[i] += record.descriptor[i];
+        weightedVector[i] += record.descriptor[i] * weight;
       }
     }
 
+    if (totalWeight < 1e-6) return null;
+
     let norm = 0;
     for (let i = 0; i < dimension; i++) {
-      meanVector[i] /= this.#records.length;
-      norm += meanVector[i] * meanVector[i];
+      weightedVector[i] /= totalWeight;
+      norm += weightedVector[i] * weightedVector[i];
     }
 
     norm = Math.sqrt(norm);
     if (norm > 1e-6) {
       for (let i = 0; i < dimension; i++) {
-        meanVector[i] /= norm;
+        weightedVector[i] /= norm;
       }
     }
 
-    return meanVector;
+    return weightedVector;
   }
 
   /**

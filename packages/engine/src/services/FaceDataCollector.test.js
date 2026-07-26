@@ -70,18 +70,41 @@ describe("FaceDataCollector", () => {
     collector.recordChallengeData({
       challengeType: "WAITING",
       descriptor: [1, 0, 0],
+      qualityScore: 1.0,
     });
     collector.recordChallengeData({
       challengeType: "SMILE",
       descriptor: [0, 1, 0],
+      qualityScore: 1.0,
     });
 
     const aggregate = collector.getAggregateDescriptor();
     expect(aggregate).not.toBeNull();
-    // [0.5, 0.5, 0] normalized is [1/sqrt(2), 1/sqrt(2), 0]
+    // Equal weights [1, 1, 0] normalized is [1/sqrt(2), 1/sqrt(2), 0]
     expect(aggregate[0]).toBeCloseTo(Math.SQRT1_2);
     expect(aggregate[1]).toBeCloseTo(Math.SQRT1_2);
     expect(aggregate[2]).toBe(0);
+  });
+
+  it("should weight high-quality frontal descriptors more heavily than low-quality off-angle descriptors", () => {
+    const collector = new FaceDataCollector();
+    // High-quality frontal frame (weight = 1.0)
+    collector.recordChallengeData({
+      challengeType: "WAITING",
+      descriptor: [1, 0, 0],
+      qualityScore: 1.0,
+    });
+    // Low-quality turn frame (weight = 0.2)
+    collector.recordChallengeData({
+      challengeType: "TURN_LEFT",
+      descriptor: [0, 1, 0],
+      qualityScore: 0.2,
+    });
+
+    const aggregate = collector.getAggregateDescriptor();
+    expect(aggregate).not.toBeNull();
+    // Weighted vector: [1.0, 0.2, 0]. Component 0 should be significantly larger than component 1
+    expect(aggregate[0]).toBeGreaterThan(aggregate[1] * 4);
   });
 
   it("should clear recorded data", () => {
