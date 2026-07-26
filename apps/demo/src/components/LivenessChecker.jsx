@@ -37,6 +37,8 @@ export function LivenessChecker() {
     "TURN_RIGHT",
   ]);
 
+  const [sessionMetrics, setSessionMetrics] = useState(null);
+
   const toggleChallenge = (type) => {
     setSelectedChallenges((prev) => {
       if (prev.includes(type)) {
@@ -125,8 +127,15 @@ export function LivenessChecker() {
     });
 
     sdk.on("success", async (livenessResult) => {
-      const { descriptor } = livenessResult;
+      const { descriptor, challengeFaceData, identityContinuity } = livenessResult;
       setCurrentChallenge(null);
+
+      setSessionMetrics({
+        challengeCount: challengeFaceData?.length || 0,
+        identityContinuity: identityContinuity
+          ? (identityContinuity.minSimilarity * 100).toFixed(1)
+          : "100.0",
+      });
 
       if (apiConfigRef.current.apiKey) {
         try {
@@ -177,6 +186,11 @@ export function LivenessChecker() {
             setUserName("");
           } else {
             setMatchScore(cloudResult.match?.similarity || 0);
+            setSessionMetrics((prev) => ({
+              ...prev,
+              confidence: cloudResult.confidence,
+              effectiveThreshold: cloudResult.effectiveThreshold,
+            }));
             setUiState(UI_STATE.SUCCESS);
             setInstruction(
               cloudResult.verified
@@ -481,8 +495,23 @@ export function LivenessChecker() {
             </h3>
             {matchScore !== null && (
               <p className="mt-2 font-mono text-white/90">
-                Match Confidence: {(matchScore * 100).toFixed(2)}%
+                Match Score: {(matchScore * 100).toFixed(2)}%
               </p>
+            )}
+            {sessionMetrics && (
+              <div className="mt-3 flex flex-wrap justify-center gap-2 text-xs font-semibold">
+                <span className="rounded-full bg-white/20 px-3 py-1 backdrop-blur-sm">
+                  {sessionMetrics.challengeCount} Poses Aggregated
+                </span>
+                <span className="rounded-full bg-white/20 px-3 py-1 backdrop-blur-sm">
+                  Continuity: {sessionMetrics.identityContinuity}%
+                </span>
+                {sessionMetrics.confidence && (
+                  <span className="rounded-full bg-white/30 px-3 py-1 font-bold backdrop-blur-sm">
+                    Rating: {sessionMetrics.confidence}
+                  </span>
+                )}
+              </div>
             )}
             <button
               onClick={() => setUiState(UI_STATE.READY_TO_START)}
