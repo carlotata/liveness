@@ -215,9 +215,10 @@ export class LivenessEngine {
 
     if (evaluation.passed) {
       this.#isChallengeProcessing = true;
-      this.#recordChallengeFaceData(landmarks, currentStrategy.type).finally(() => {
+      (async () => {
+        await this.#recordChallengeFaceData(landmarks, currentStrategy.type);
         setTimeout(() => this.#moveToNextChallenge(), 300);
-      });
+      })();
     } else if (
       Date.now() - this.#lastChallengeTime >
       this.#config.challengeTimeout
@@ -304,6 +305,15 @@ export class LivenessEngine {
       }
 
       const finalDescriptor = await this.#extractDescriptorFromTensor(faceTensor);
+
+      if (this.#faceDataCollector.getRecords().length === 0) {
+        this.#faceDataCollector.recordChallengeData({
+          challengeType: "WAITING",
+          descriptor: finalDescriptor,
+          landmarks: this.#lastLandmarks,
+          timestamp: Date.now(),
+        });
+      }
 
       const continuityResult = this.#faceDataCollector.verifyIdentityContinuity(
         this.#config.minIdentitySimilarity,
