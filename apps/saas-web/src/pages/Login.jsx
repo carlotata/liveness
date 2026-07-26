@@ -2,6 +2,7 @@ import { Lock as LockIcon, ShieldCheck, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { z } from "zod";
+import AuthLayout from "../layouts/AuthLayout";
 import { api } from "../services/api";
 
 const loginSchema = z.object({
@@ -137,6 +138,15 @@ export default function Login({ modal = false }) {
               placeholder="••••••••"
             />
           </div>
+          <div className="mt-2 text-right">
+            <Link
+              to="/forgot-password"
+              state={modal ? location.state : undefined}
+              className="text-xs font-bold text-blue-600 transition-colors hover:text-blue-700"
+            >
+              Forgot password?
+            </Link>
+          </div>
         </div>
 
         <button
@@ -189,10 +199,10 @@ export default function Login({ modal = false }) {
 
   // Standalone full-page fallback (direct URL access)
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-white px-4 py-12">
+    <AuthLayout>
       <div className="w-full max-w-md rounded-3xl border border-slate-100 bg-white p-7 shadow-2xl shadow-slate-200">
         {formContent}
       </div>
-    </div>
+    </AuthLayout>
   );
 }

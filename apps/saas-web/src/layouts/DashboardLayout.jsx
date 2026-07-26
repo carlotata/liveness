@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Settings as SettingsIcon,
   ShieldCheck,
   Users,
   Webhook,
@@ -33,6 +34,7 @@ export default function DashboardLayout({ children }) {
     { path: "/api-keys", icon: Key, label: "API Keys" },
     { path: "/webhooks", icon: Webhook, label: "Webhooks" },
     { path: "/billing", icon: CreditCard, label: "Billing" },
+    { path: "/settings", icon: SettingsIcon, label: "Settings" },
     { path: "/docs", icon: Book, label: "Documentation" },
   ];
 

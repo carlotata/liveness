@@ -152,7 +152,7 @@ export default function Webhooks() {
 
       <div className="overflow-hidden rounded-3xl sm:rounded-[2.5rem] border border-slate-100 bg-white shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm min-w-[600px]">
+          <table className="w-full text-left text-sm min-w-150">
             <thead>
               <tr className="bg-slate-50/50 text-[10px] font-black tracking-[0.15em] text-slate-400 uppercase">
                 <th className="px-4 sm:px-8 py-4 sm:py-6">Endpoint URL</th>
@@ -172,13 +172,13 @@ export default function Webhooks() {
                       <div
                         className={`h-2 w-2 shrink-0 rounded-full ${webhook.isActive ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-slate-300"}`}
                       />
-                      <span className="text-sm sm:text-base font-bold text-slate-900 truncate max-w-[200px] sm:max-w-xs">
+                      <span className="text-sm sm:text-base font-bold text-slate-900 truncate max-w-50 sm:max-w-xs">
                         {webhook.url}
                       </span>
                     </div>
                   </td>
                   <td className="px-4 sm:px-8 py-4 sm:py-6">
-                    <div className="flex max-w-[140px] sm:max-w-xs items-center justify-between gap-2 sm:gap-4 rounded-2xl border border-slate-100 bg-slate-50 px-3 sm:px-4 py-2 transition-colors group-hover:bg-white">
+                    <div className="flex max-w-35 sm:max-w-xs items-center justify-between gap-2 sm:gap-4 rounded-2xl border border-slate-100 bg-slate-50 px-3 sm:px-4 py-2 transition-colors group-hover:bg-white">
                       <code className="truncate font-mono text-xs font-bold text-slate-500">
                         {webhook.secret}
                       </code>
@@ -260,7 +260,7 @@ export default function Webhooks() {
 
         <div className="overflow-hidden rounded-3xl sm:rounded-[2.5rem] border border-slate-100 bg-white shadow-xs">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm min-w-[600px]">
+            <table className="w-full text-left text-sm min-w-150">
               <thead>
                 <tr className="bg-slate-50/50 text-[10px] font-black tracking-[0.15em] text-slate-400 uppercase">
                   <th className="px-4 sm:px-8 py-4 sm:py-6">Event</th>
@@ -279,7 +279,7 @@ export default function Webhooks() {
                     <td className="px-4 sm:px-8 py-4 sm:py-6 font-mono text-xs font-bold text-slate-700">
                       {log.event}
                     </td>
-                    <td className="px-4 sm:px-8 py-4 sm:py-6 font-medium text-slate-500 truncate max-w-[150px] sm:max-w-xs">
+                    <td className="px-4 sm:px-8 py-4 sm:py-6 font-medium text-slate-500 truncate max-w-37.5 sm:max-w-xs">
                       {log.url}
                     </td>
                     <td className="px-4 sm:px-8 py-4 sm:py-6">

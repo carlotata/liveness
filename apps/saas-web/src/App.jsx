@@ -4,9 +4,12 @@ import ApiKeys from "./pages/ApiKeys";
 import Billing from "./pages/Billing";
 import Dashboard from "./pages/Dashboard";
 import Documentation from "./pages/Documentation";
+import ForgotPassword from "./pages/ForgotPassword";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Logs from "./pages/Logs";
+import ResetPassword from "./pages/ResetPassword";
+import Settings from "./pages/Settings";
 import Signup from "./pages/Signup";
 import Users from "./pages/Users";
 import Webhooks from "./pages/Webhooks";
@@ -82,6 +85,22 @@ function App() {
             </PublicOnlyRoute>
           }
         />
+        <Route
+          path="/forgot-password"
+          element={
+            <PublicOnlyRoute>
+              <ForgotPassword />
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <PublicOnlyRoute>
+              <ResetPassword />
+            </PublicOnlyRoute>
+          }
+        />
 
         <Route path="/docs" element={<Documentation />} />
 
@@ -133,6 +152,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<NotFound />} />
       </Routes>
 
@@ -152,6 +179,22 @@ function App() {
             element={
               <PublicOnlyRoute>
                 <Signup modal />
+              </PublicOnlyRoute>
+            }
+          />
+          <Route
+            path="/forgot-password"
+            element={
+              <PublicOnlyRoute>
+                <ForgotPassword modal />
+              </PublicOnlyRoute>
+            }
+          />
+          <Route
+            path="/reset-password"
+            element={
+              <PublicOnlyRoute>
+                <ResetPassword modal />
               </PublicOnlyRoute>
             }
           />

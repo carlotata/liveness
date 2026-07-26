@@ -55,6 +55,21 @@ export const api = {
       const saved = localStorage.getItem(ADMIN_KEY);
       return saved ? JSON.parse(saved) : null;
     },
+    forgotPassword: (email) =>
+      request("/dashboard/forgot-password", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      }),
+    resetPassword: (token, newPassword) =>
+      request("/dashboard/reset-password", {
+        method: "POST",
+        body: JSON.stringify({ token, newPassword }),
+      }),
+    changePassword: (currentPassword, newPassword) =>
+      request("/dashboard/change-password", {
+        method: "POST",
+        body: JSON.stringify({ currentPassword, newPassword }),
+      }),
   },
 
   users: {
