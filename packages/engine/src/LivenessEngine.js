@@ -7,6 +7,7 @@ import { DebugOverlayRenderer } from "./rendering/DebugOverlayRenderer";
 import { MediaPipeFaceDetector } from "./providers/MediaPipeFaceDetector";
 import { MobileNetFeatureExtractor } from "./providers/MobileNetFeatureExtractor";
 import { FaceDataCollector } from "./services/FaceDataCollector";
+import { FaceAligner } from "./services/FaceAligner";
 
 const DEFAULT_CONFIG = {
   blinkEARThreshold: 0.25,
@@ -27,11 +28,11 @@ const DEFAULT_CONFIG = {
 };
 
 /**
- * LivenessEngine orchestrates face detection, challenge validation, anti-spoofing, and feature extraction.
+ * LivenessEngine orchestrates face detection, challenge validation, anti-spoofing, feature extraction, and face alignment.
  * Refactored using SOLID principles:
- * - SRP: Delegates rendering, model execution, validation, challenge strategies, and face data collection to dedicated modules.
+ * - SRP: Delegates rendering, model execution, validation, challenge strategies, face data collection, and geometric alignment to dedicated modules.
  * - OCP: Open to custom challenges (via ChallengeRegistry) and custom validators (via LivenessPipeline).
- * - DIP: Depends on abstractions (faceDetector, featureExtractor, pipeline, faceDataCollector) which can be injected.
+ * - DIP: Depends on abstractions (faceDetector, featureExtractor, pipeline, faceDataCollector, faceAligner) which can be injected.
  */
 export class LivenessEngine {
   #faceDetector;
@@ -40,6 +41,7 @@ export class LivenessEngine {
   #pipeline;
   #overlayRenderer;
   #faceDataCollector;
+  #faceAligner;
 
   #callbacks;
   #config;
@@ -85,6 +87,7 @@ export class LivenessEngine {
       new FaceDataCollector({
         minSimilarityThreshold: this.#config.minIdentitySimilarity,
       });
+    this.#faceAligner = config.faceAligner || new FaceAligner();
   }
 
   async load() {
@@ -357,24 +360,29 @@ export class LivenessEngine {
           .expandDims(0);
       }
 
-      const xs = landmarks.map((l) => l.x);
-      const ys = landmarks.map((l) => l.y);
-      const xMin = Math.min(...xs);
-      const xMax = Math.max(...xs);
-      const yMin = Math.min(...ys);
-      const yMax = Math.max(...ys);
+      let box = this.#faceAligner?.getAlignedCropBox(landmarks);
 
-      const w = xMax - xMin;
-      const h = yMax - yMin;
-      const padX = w * 0.2;
-      const padY = h * 0.2;
+      if (!box) {
+        const xs = landmarks.map((l) => l.x);
+        const ys = landmarks.map((l) => l.y);
+        const xMin = Math.min(...xs);
+        const xMax = Math.max(...xs);
+        const yMin = Math.min(...ys);
+        const yMax = Math.max(...ys);
 
-      const y1 = Math.max(0, yMin - padY);
-      const x1 = Math.max(0, xMin - padX);
-      const y2 = Math.min(1, yMax + padY);
-      const x2 = Math.min(1, xMax + padX);
+        const w = xMax - xMin;
+        const h = yMax - yMin;
+        const padX = w * 0.2;
+        const padY = h * 0.2;
 
-      const box = [[y1, x1, y2, x2]];
+        const y1 = Math.max(0, yMin - padY);
+        const x1 = Math.max(0, xMin - padX);
+        const y2 = Math.min(1, yMax + padY);
+        const x2 = Math.min(1, xMax + padX);
+
+        box = [[y1, x1, y2, x2]];
+      }
+
       const boxInd = [0];
 
       const batchImage = image.expandDims(0).toFloat();
