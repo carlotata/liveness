@@ -3,6 +3,8 @@ import express from "express";
 import { z } from "zod";
 import pool from "../db.js";
 
+import { ScoreCalibrator } from "../services/ScoreCalibrator.js";
+
 const router = express.Router();
 
 const formatVector = (vector) => `[${vector.join(",")}]`;
@@ -246,7 +248,13 @@ router.post(
     }
 
     const { descriptor, threshold } = validation.data;
-    const similarityThreshold = threshold !== undefined ? threshold : 0.65;
+    const calibrator = new ScoreCalibrator(
+      threshold !== undefined ? threshold : 0.65,
+    );
+    const effectiveThreshold = calibrator.calculateAdaptiveThreshold({
+      antiSpoofing: req.body.antiSpoofing,
+      identityContinuity: req.body.identityContinuity,
+    });
 
     try {
       const queryText = `
@@ -263,11 +271,17 @@ router.post(
 
       let status = "FAILURE";
       let match = null;
+      let confidence = "NONE";
 
       if (result.rows.length > 0) {
         match = result.rows[0];
-        if (match.similarity > similarityThreshold) {
+        const evalResult = calibrator.evaluateConfidence(
+          match.similarity,
+          effectiveThreshold,
+        );
+        if (evalResult.verified) {
           status = "SUCCESS";
+          confidence = evalResult.confidence;
         }
       }
 
@@ -285,6 +299,8 @@ router.post(
 
       const responsePayload = {
         verified: status === "SUCCESS",
+        confidence,
+        effectiveThreshold,
         match: match
           ? { name: match.name, similarity: match.similarity }
           : null,
