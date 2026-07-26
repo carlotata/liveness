@@ -1,7 +1,15 @@
+export interface ChallengeFaceDataRecord {
+  challengeType: string;
+  descriptor: number[];
+  landmarks?: any[] | null;
+  timestamp: number;
+}
+
 export interface LivenessCallbacks {
   onReady: () => void;
   onSuccess: (result: {
     descriptor: number[];
+    challengeFaceData?: ChallengeFaceDataRecord[];
     sessionToken: string;
     timestamp: number;
     challenges: string[];
@@ -12,6 +20,10 @@ export interface LivenessCallbacks {
       brightness: number;
       occlusionDetected: boolean;
       fftPeak: number;
+    };
+    identityContinuity?: {
+      passed: boolean;
+      minSimilarity: number;
     };
   }) => void;
   onFailure: (error: { code: string; message: string }) => void;
@@ -36,6 +48,7 @@ export interface LivenessConfig {
   sessionToken?: string;
   minDepthVariance?: number;
   minLaplacianVariance?: number;
+  minIdentitySimilarity?: number;
   challenges?: string[];
 }
 
