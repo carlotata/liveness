@@ -495,13 +495,15 @@ const APIRefContent = () => (
                 {
                   name: "challengeTimeout",
                   def: "5000",
-                  desc: "Max ms per challenge.",
+                  desc: "Max ms allowed per active challenge.",
                 },
-                { name: "minBrightness", def: "50", desc: "Scale 0-255." },
+                { name: "minBrightness", def: "50", desc: "Minimum frame brightness (0-255 or normalized -0.92)." },
+                { name: "maxBrightness", def: "0.95", desc: "Maximum frame brightness before glare detection." },
+                { name: "maxFFTPeak", def: "180.0", desc: "Threshold peak for digital screen Moiré pattern detection." },
                 {
                   name: "targetFPS",
                   def: "30",
-                  desc: "Throttling for performance.",
+                  desc: "Frame rate limit for detection processing.",
                 },
               ].map((row, i) => (
                 <tr key={i} className="hover:bg-slate-50/50">
@@ -521,21 +523,31 @@ const APIRefContent = () => (
         <h3 className="mb-4 sm:mb-6 font-bold text-slate-900">Event Registry</h3>
         <div className="space-y-4">
           {[
-            { event: "ready", payload: "void", trigger: "Models loaded." },
+            { event: "ready", payload: "void", trigger: "Models loaded and environment checks passed." },
             {
               event: "challenge",
-              payload: "{ type, instruction }",
-              trigger: "New action requested.",
+              payload: "{ type, instruction, distance }",
+              trigger: "New challenge step requested or position updated.",
+            },
+            {
+              event: "progress",
+              payload: "{ progress, rawValue }",
+              trigger: "Challenge step completion progress updated.",
             },
             {
               event: "success",
-              payload: "LivenessResult",
-              trigger: "Checks passed.",
+              payload: "{ descriptor, sessionToken, timestamp, challenges, integrity, antiSpoofing }",
+              trigger: "All active challenges and quality checks passed.",
             },
             {
               event: "failure",
               payload: "{ code, message }",
-              trigger: "Security check failed.",
+              trigger: "Anti-spoofing validation or challenge check failed.",
+            },
+            {
+              event: "error",
+              payload: "{ code, message }",
+              trigger: "System, browser, hardware, or model load error.",
             },
           ].map((item, i) => (
             <div
@@ -553,6 +565,44 @@ const APIRefContent = () => (
               </span>
             </div>
           ))}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="mb-4 sm:mb-6 font-bold text-slate-900">Error Codes Reference</h3>
+        <div className="overflow-x-auto rounded-xl sm:rounded-2xl border border-slate-100">
+          <table className="w-full text-left text-sm min-w-[500px]">
+            <thead className="bg-slate-50 font-bold tracking-wider text-slate-500 uppercase">
+              <tr>
+                <th className="px-4 sm:px-6 py-3 sm:py-4">Error Code</th>
+                <th className="px-4 sm:px-6 py-3 sm:py-4">Event</th>
+                <th className="px-4 sm:px-6 py-3 sm:py-4">Description</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {[
+                { code: "POOR_LIGHTING", event: "failure", desc: "Environment is too dark or glare detected." },
+                { code: "SPOOF_DETECTED", event: "failure", desc: "Screen pattern (Moiré) or flat surface detected." },
+                { code: "OCCLUSION_DETECTED", event: "failure", desc: "Face is partially covered." },
+                { code: "FACE_NOT_FOUND", event: "failure", desc: "No face detected in video stream." },
+                { code: "CHALLENGE_TIMEOUT", event: "failure", desc: "Challenge time limit exceeded." },
+                { code: "RECOGNITION_FAILED", event: "failure", desc: "Biometric feature extraction error." },
+                { code: "WASM_NOT_SUPPORTED", event: "error", desc: "WebAssembly unsupported in browser." },
+                { code: "WEBGL_NOT_SUPPORTED", event: "error", desc: "WebGL acceleration unavailable." },
+                { code: "CAMERA_ACCESS_DENIED", event: "error/failure", desc: "User denied camera access permission." },
+                { code: "CAMERA_NOT_FOUND", event: "error/failure", desc: "No camera device found on system." },
+                { code: "MODEL_LOAD_FAILED", event: "error/failure", desc: "Failed to download neural network weights." },
+              ].map((row, i) => (
+                <tr key={i} className="hover:bg-slate-50/50">
+                  <td className="px-4 sm:px-6 py-3 sm:py-4 font-mono font-bold text-red-600 text-xs sm:text-sm">
+                    {row.code}
+                  </td>
+                  <td className="px-4 sm:px-6 py-3 sm:py-4 font-mono text-xs text-slate-500">{row.event}</td>
+                  <td className="px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-slate-500">{row.desc}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
