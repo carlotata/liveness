@@ -59,7 +59,17 @@ export async function signup(req, res) {
       lastName,
       email,
     );
-    res.status(201).json(result);
+
+    const { token, ...admin } = result;
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    res.status(201).json(admin);
   } catch (error) {
     if (error.code === "23505") {
       if (error.detail.includes("username")) {
@@ -84,9 +94,15 @@ export async function login(req, res) {
 
   try {
     const result = await authServices.login(username, password);
-
+    const { token, ...admin } = result;
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
     res.json({
-      ...result,
+      ...admin,
     });
   } catch (error) {
     console.error("Login error:", error);
@@ -148,5 +164,23 @@ export async function changePassword(req, res) {
       return res.status(error.status).json({ error: error.message });
     }
     res.status(500).json({ error: "Failed to change password." });
+  }
+}
+
+export async function logout(req, res) {
+  res.clearCookie("token");
+  res.status(204).send();
+}
+
+export async function me(req, res) {
+  try {
+    const admin = await authServices.getCurrentUser(req.user.id);
+    res.status(200).json(admin);
+  } catch (error) {
+    console.error("Error fetching current user:", error);
+    if (error.status) {
+      return res.status(error.status).json({ error: error.message });
+    }
+    res.status(500).json({ error: "Failed to fetch current user." });
   }
 }

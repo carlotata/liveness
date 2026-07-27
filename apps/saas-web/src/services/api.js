@@ -5,14 +5,12 @@ const ADMIN_KEY = "liveness_admin";
 
 const request = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
-  const savedAdmin = localStorage.getItem(ADMIN_KEY);
-  const token = savedAdmin ? JSON.parse(savedAdmin).token : null;
 
   const response = await fetch(url, {
     ...options,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
   });
@@ -49,6 +47,7 @@ export const api = {
       return admin;
     },
     logout: async () => {
+      await request("/dashboard/logout", { method: "POST" });
       localStorage.removeItem(ADMIN_KEY);
     },
     getCurrentUser: () => {
@@ -129,4 +128,3 @@ export const api = {
     },
   },
 };
-

@@ -240,3 +240,20 @@ export async function changePassword(adminId, currentPassword, newPassword) {
   }
   return updatePassword;
 }
+
+export async function getCurrentUser(adminId) {
+  const admin = await authRepositories.findAdminById(adminId);
+  if (!admin) {
+    const error = new Error("User not found");
+    error.status = 404;
+    throw error;
+  }
+  return {
+    id: admin.id,
+    username: admin.username,
+    firstName: admin.first_name,
+    lastName: admin.last_name,
+    email: admin.email,
+    subscriptionTier: admin.subscription_tier,
+  };
+}
