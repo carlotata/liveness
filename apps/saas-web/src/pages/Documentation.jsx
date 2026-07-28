@@ -3,18 +3,21 @@ import {
   Bell,
   Book,
   CheckCircle2,
+  ChevronDown,
   Cloud,
   Code2,
   FileCode,
   Key,
   Layers,
   Menu,
+  Search,
   ShieldCheck,
   Terminal,
   X,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import DashboardLayout from "../layouts/DashboardLayout";
 import { api } from "../services/api";
 
 const SidebarItem = ({ id, label, activeId, onClick, icon: Icon }) => (
@@ -61,7 +64,7 @@ const CodeBlock = ({ code, language, title }) => (
 );
 
 const IntroContent = () => (
-  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+  <div>
     <div className="mb-6 inline-flex items-center rounded-full bg-blue-50 px-4 py-1.5 text-xs font-bold text-blue-700">
       <Book className="mr-2 h-3.5 w-3.5" /> Documentation v1.0.0
     </div>
@@ -125,7 +128,7 @@ const IntroContent = () => (
 );
 
 const SDKUsageContent = () => (
-  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+  <div>
     <h2 className="mb-6 sm:mb-8 text-3xl sm:text-4xl font-black tracking-tight text-slate-900">
       Using the SDK
     </h2>
@@ -204,7 +207,7 @@ sdk.on("failure", (error) => {
 );
 
 const CloudUsageContent = () => (
-  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+  <div>
     <h2 className="mb-6 sm:mb-8 text-3xl sm:text-4xl font-black tracking-tight text-slate-900">
       Liveness Cloud Guide
     </h2>
@@ -393,7 +396,7 @@ app.post("/webhooks/liveness", (req, res) => {
 );
 
 const MethodologyContent = () => (
-  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+  <div>
     <h2 className="mb-6 sm:mb-8 text-3xl sm:text-4xl font-black tracking-tight text-slate-900">
       Detection Methodology
     </h2>
@@ -466,7 +469,7 @@ const MethodologyContent = () => (
 );
 
 const APIRefContent = () => (
-  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+  <div>
     <h2 className="mb-6 sm:mb-8 text-3xl sm:text-4xl font-black tracking-tight text-slate-900">
       API & Events Reference
     </h2>
@@ -616,6 +619,18 @@ const Documentation = () => {
   const location = useLocation();
   const user = api.auth.getCurrentUser();
 
+  const scrollToTop = () => {
+    const mainEl = document.querySelector("main");
+    if (mainEl) mainEl.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleTopicChange = (id) => {
+    setActivePage(id);
+    setMobileMenuOpen(false);
+    scrollToTop();
+  };
+
   const openModal = (path) => {
     navigate(path, { state: { backgroundLocation: location } });
   };
@@ -638,28 +653,37 @@ const Documentation = () => {
     },
   ];
 
-  const renderContent = () => {
-    switch (activePage) {
-      case "introduction":
-        return <IntroContent />;
-      case "sdk-usage":
-        return <SDKUsageContent />;
-      case "cloud-usage":
-        return <CloudUsageContent />;
-      case "methodology":
-        return <MethodologyContent />;
-      case "api-ref":
-        return <APIRefContent />;
-      default:
-        return <IntroContent />;
-    }
-  };
+  const flatItems = menu.flatMap((g) => g.items);
+  const currentIndex = flatItems.findIndex((i) => i.id === activePage);
+  const prevItem = flatItems[currentIndex - 1];
+  const nextItem = flatItems[currentIndex + 1];
+
+  const renderContent = () => (
+    <div key={activePage}>
+      {(() => {
+        switch (activePage) {
+          case "introduction":
+            return <IntroContent />;
+          case "sdk-usage":
+            return <SDKUsageContent />;
+          case "cloud-usage":
+            return <CloudUsageContent />;
+          case "methodology":
+            return <MethodologyContent />;
+          case "api-ref":
+            return <APIRefContent />;
+          default:
+            return <IntroContent />;
+        }
+      })()}
+    </div>
+  );
 
   const renderSidebarContent = () => (
     <>
       {menu.map((group, idx) => (
-        <div key={idx} className="mb-8">
-          <h5 className="mb-3 px-4 text-xs font-bold tracking-widest text-slate-400 uppercase">
+        <div key={idx} className="mb-6 last:mb-0">
+          <h5 className="mb-2.5 px-3 text-[10px] font-black tracking-widest text-slate-400 uppercase">
             {group.title}
           </h5>
           <ul className="space-y-1">
@@ -669,11 +693,7 @@ const Documentation = () => {
                 id={item.id}
                 label={item.label}
                 activeId={activePage}
-                onClick={(id) => {
-                  setActivePage(id);
-                  setMobileMenuOpen(false);
-                  window.scrollTo(0, 0);
-                }}
+                onClick={handleTopicChange}
                 icon={item.icon}
               />
             ))}
@@ -683,189 +703,156 @@ const Documentation = () => {
     </>
   );
 
-  return (
-    <div className="min-h-screen bg-white font-sans text-slate-900 overflow-x-hidden">
-      <nav className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-slate-100 bg-white/80 px-4 sm:px-6 md:px-12 backdrop-blur-md">
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Breadcrumb / Logo */}
-          <nav className="flex items-center" aria-label="Breadcrumb">
-            <Link
-              to={user ? "/dashboard" : "/"}
-              className="flex items-center gap-1.5 group"
-            >
-              <ShieldCheck className="h-5 w-5 text-blue-600 shrink-0" />
-              <span className="hidden sm:inline text-sm font-semibold text-slate-500 group-hover:text-blue-600 transition-colors">
-                {user ? "Dashboard" : "Liveness Cloud"}
+  const currentItem = flatItems.find((i) => i.id === activePage) || flatItems[0];
+  const CurrentIcon = currentItem.icon;
+
+  const [topicDropdownOpen, setTopicDropdownOpen] = useState(false);
+
+  const pageContent = (
+    <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+      {/* Custom Responsive Animated Mobile Topic Dropdown Selector */}
+      <div className="lg:hidden w-full mb-3 relative">
+        <button
+          onClick={() => setTopicDropdownOpen((prev) => !prev)}
+          className="flex w-full items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-2.5 px-3.5 shadow-xs transition-all hover:border-slate-300 active:scale-[0.99] cursor-pointer"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shrink-0">
+              <CurrentIcon className="h-4 w-4" />
+            </div>
+            <div className="flex flex-col text-left min-w-0 pr-2">
+              <span className="text-xs font-extrabold text-slate-900 truncate">
+                {currentItem.label}
               </span>
-            </Link>
-            <span className="mx-2 text-slate-300 font-light select-none">/</span>
-            <span className="text-sm font-bold text-slate-900">
-              Docs
-            </span>
-          </nav>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Actions - hidden on mobile, visible on sm and up */}
-          {!user && (
-            <div className="hidden sm:flex items-center space-x-3 sm:space-x-6">
-              <button
-                onClick={() => openModal("/login")}
-                className="text-xs sm:text-sm font-semibold text-slate-600 transition-colors hover:text-blue-600 cursor-pointer"
-              >
-                Log In
-              </button>
-              <button
-                onClick={() => openModal("/signup")}
-                className="rounded-full bg-blue-600 px-3.5 py-1.5 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-bold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 hover:shadow-xl active:scale-95 shrink-0 cursor-pointer"
-              >
-                Get API Key
-              </button>
             </div>
-          )}
-
-          {/* Larger, Prominent Burger Menu for Mobile / Tablet */}
-          <button
-            onClick={() => setMobileMenuOpen(true)}
-            className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 active:scale-95 transition-all lg:hidden cursor-pointer"
-            aria-label="Open documentation menu"
-          >
-            <Menu className="h-6 w-6" />
-          </button>
-        </div>
-      </nav>
-
-      {/* Mobile Docs Navigation Drawer */}
-      {mobileMenuOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs lg:hidden cursor-pointer"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
-
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white p-6 shadow-2xl transition-transform duration-300 overflow-y-auto lg:hidden ${
-          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div className="flex flex-col h-full justify-between">
-          <div>
-            <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
-              <div className="flex items-center">
-                <ShieldCheck className="mr-2 h-6 w-6 text-blue-600" />
-                <span className="font-bold text-slate-900">Documentation</span>
-              </div>
-              <button
-                onClick={() => setMobileMenuOpen(false)}
-                className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 cursor-pointer"
-                aria-label="Close menu"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            {renderSidebarContent()}
           </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="rounded-lg bg-blue-50 px-2 py-1 text-[10px] font-extrabold text-blue-600 uppercase">
+            </span>
+            <ChevronDown
+              className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
+                topicDropdownOpen ? "rotate-180 text-blue-600" : ""
+              }`}
+            />
+          </div>
+        </button>
 
-          {!user && (
-            <div className="mt-8 border-t border-slate-100 pt-6 flex flex-col gap-3">
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  openModal("/login");
-                }}
-                className="w-full rounded-xl border border-slate-200 py-2.5 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
-              >
-                Log In
-              </button>
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  openModal("/signup");
-                }}
-                className="w-full rounded-xl bg-blue-600 py-2.5 text-center text-sm font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700 transition-colors cursor-pointer"
-              >
-                Get API Key
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Custom Animated Topic Menu Panel */}
+        {topicDropdownOpen && (
+          <div className="absolute top-full left-0 right-0 z-40 mt-2 rounded-2xl border border-slate-100 bg-white p-3 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+            {menu.map((group, idx) => (
+              <div key={idx} className="mb-3.5 last:mb-0">
+                <div className="mb-1.5 px-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  {group.title}
+                </div>
+                <div className="space-y-1">
+                  {group.items.map((item) => {
+                    const isActive = activePage === item.id;
+                    const ItemIcon = item.icon;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          handleTopicChange(item.id);
+                          setTopicDropdownOpen(false);
+                        }}
+                        className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold transition-all cursor-pointer ${
+                          isActive
+                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
+                            : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <ItemIcon className={`h-4 w-4 shrink-0 ${isActive ? "text-white" : "text-slate-400"}`} />
+                          <span className="truncate">{item.label}</span>
+                        </div>
+                        {isActive && (
+                          <span className="h-1.5 w-1.5 rounded-full bg-white shadow-xs shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Sub-navigation Sidebar for Docs Topics (Hidden on mobile, sticky on desktop) */}
+      <aside className="hidden lg:block w-64 shrink-0 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs h-fit sticky top-24">
+        {renderSidebarContent()}
       </aside>
 
-      <div className="mx-auto flex max-w-7xl w-full">
-        {/* Desktop Sidebar */}
-        <aside className="fixed hidden h-[calc(100vh-4rem)] w-72 overflow-y-auto border-r border-slate-100 bg-white p-8 lg:block">
-          {renderSidebarContent()}
-        </aside>
+      {/* Docs Main Content */}
+      <div className="flex-1 min-w-0">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-8 md:p-10 shadow-xs">
+          {renderContent()}
 
-        <main className="min-h-[calc(100vh-4rem)] flex-1 min-w-0 px-4 sm:px-6 py-8 sm:py-16 lg:ml-72 lg:px-20">
-          <div className="mx-auto max-w-4xl">
-            {renderContent()}
-
-            <div className="mt-16 sm:mt-24 md:mt-32 flex justify-between border-t border-slate-100 pt-8 sm:pt-12">
-              <div></div>
+          {/* Compact Inline Pagination Controls */}
+          <div className="mt-10 sm:mt-12 flex items-center justify-between gap-4 border-t border-slate-100 pt-5">
+            {prevItem ? (
               <button
-                onClick={() => {
-                  const flatItems = menu.flatMap((g) => g.items);
-                  const currentIndex = flatItems.findIndex(
-                    (i) => i.id === activePage,
-                  );
-                  const nextItem = flatItems[currentIndex + 1];
-                  if (nextItem) {
-                    setActivePage(nextItem.id);
-                    window.scrollTo(0, 0);
-                  }
-                }}
-                className="group flex items-center gap-3 text-right"
+                onClick={() => handleTopicChange(prevItem.id)}
+                className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors cursor-pointer group"
               >
-                <div>
-                  <span className="mb-1 block text-[10px] sm:text-xs font-bold tracking-widest text-slate-400 uppercase">
-                    Next Page
-                  </span>
-                  <span className="block text-sm sm:text-lg font-bold text-slate-900 transition-colors group-hover:text-blue-600">
-                    {menu.flatMap((g) => g.items)[
-                      menu
-                        .flatMap((g) => g.items)
-                        .findIndex((i) => i.id === activePage) + 1
-                    ]?.label || "End of Docs"}
-                  </span>
-                </div>
-                <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-slate-200 transition-all group-hover:border-blue-600 group-hover:bg-blue-50 shrink-0">
-                  <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-blue-600" />
-                </div>
+                <ArrowRight className="h-4 w-4 rotate-180 text-slate-400 transition-transform group-hover:-translate-x-1 group-hover:text-blue-600" />
+                <span>{prevItem.label}</span>
               </button>
-            </div>
+            ) : (
+              <div />
+            )}
 
-            <footer className="mt-12 sm:mt-20 border-t border-slate-100 pt-10 sm:pt-16 text-center text-slate-400">
-              <p className="mb-6 font-medium text-xs sm:text-sm">
-                &copy; {new Date().getFullYear()} Liveness Cloud Platform. MIT
-                Licensed.
-              </p>
-              <div className="flex justify-center space-x-6 sm:space-x-8">
-                <Link
-                  to="/"
-                  className="text-xs sm:text-sm font-semibold transition-colors hover:text-blue-600"
-                >
-                  Home
-                </Link>
-                <Link
-                  to="/login"
-                  className="text-xs sm:text-sm font-semibold transition-colors hover:text-blue-600"
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  to="/signup"
-                  className="text-xs sm:text-sm font-semibold transition-colors hover:text-blue-600"
-                >
-                  Pricing
-                </Link>
-              </div>
-            </footer>
+            {nextItem ? (
+              <button
+                onClick={() => handleTopicChange(nextItem.id)}
+                className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer group ml-auto"
+              >
+                <span>{nextItem.label}</span>
+                <ArrowRight className="h-4 w-4 text-blue-600 transition-transform group-hover:translate-x-1" />
+              </button>
+            ) : null}
           </div>
-        </main>
+        </div>
+
+        <footer className="mt-8 text-center text-xs font-medium text-slate-400">
+          &copy; {new Date().getFullYear()} Liveness Cloud Platform. All rights reserved.
+        </footer>
       </div>
+    </div>
+  );
+
+  return user ? (
+    <DashboardLayout>{pageContent}</DashboardLayout>
+  ) : (
+    <div className="min-h-screen bg-slate-50/50 font-sans text-slate-900">
+      <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-slate-200/60 bg-white/80 px-6 backdrop-blur-md">
+        <Link to="/" className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600 text-white">
+            <ShieldCheck className="h-4 w-4" />
+          </div>
+          <span className="font-extrabold text-slate-900">Liveness Docs</span>
+        </Link>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate("/login")}
+            className="text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
+          >
+            Sign In
+          </button>
+          <button
+            onClick={() => navigate("/signup")}
+            className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 cursor-pointer"
+          >
+            Get Started
+          </button>
+        </div>
+      </header>
+      <main className="mx-auto max-w-7xl p-6 sm:p-8">{pageContent}</main>
     </div>
   );
 };
 
 export default Documentation;
+
+

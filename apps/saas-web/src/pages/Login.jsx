@@ -86,7 +86,7 @@ export default function Login({ modal = false }) {
 
       <form className="space-y-5" onSubmit={handleSubmit}>
         {error && (
-          <div className="animate-shake rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">
+          <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-xs font-bold text-rose-600">
             {error}
           </div>
         )}
@@ -152,7 +152,7 @@ export default function Login({ modal = false }) {
         <button
           type="submit"
           disabled={loading}
-          className="flex w-full justify-center rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-200 transition-all hover:-translate-y-0.5 hover:bg-blue-700 focus:ring-4 focus:ring-blue-500/20 focus:outline-none active:translate-y-0 disabled:opacity-50 cursor-pointer"
+          className="flex w-full justify-center rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 focus:ring-4 focus:ring-blue-500/20 focus:outline-none active:scale-95 disabled:opacity-50 cursor-pointer"
         >
           {loading ? "Signing in..." : "Sign in to Dashboard"}
         </button>
@@ -184,7 +184,7 @@ export default function Login({ modal = false }) {
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
         {/* Backdrop */}
         <div
-          className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+          className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs"
           onClick={handleClose}
         />
         {/* Modal Card */}
@@ -206,3 +206,5 @@ export default function Login({ modal = false }) {
     </AuthLayout>
   );
 }
+
+

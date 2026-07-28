@@ -32,12 +32,12 @@ const Landing = () => {
     <div className="min-h-screen bg-white font-sans text-slate-900 overflow-x-hidden">
       {/* Navigation */}
       <nav className="relative flex items-center justify-between border-b border-slate-100 px-4 py-4 sm:px-6 md:px-12">
-        <div className="flex items-center">
-          <ShieldCheck className="mr-2 h-8 w-8 text-blue-600 shrink-0" />
-          <span className="text-xl font-bold tracking-tight">
-            Liveness Cloud
+        <Link to="/" className="flex items-center gap-2 group">
+          <ShieldCheck className="h-7 w-7 text-blue-600 shrink-0 transition-transform group-hover:scale-105" />
+          <span className="text-xl font-extrabold tracking-tight text-slate-900">
+            Liveness<span className="text-blue-600 font-light ml-0.5">Cloud</span>
           </span>
-        </div>
+        </Link>
 
         {/* Desktop Navigation */}
         <div className="hidden items-center space-x-8 md:flex">
