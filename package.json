@@ -16,7 +16,8 @@
     "build:sdk": "npm run build -w packages/sdk",
     "lint": "eslint .",
     "test": "npm run test -w packages/engine",
-    "postinstall": "node scripts/patch-mediapipe.js"
+    "postinstall": "node scripts/patch-mediapipe.js && node scripts/install-win-rollup.js",
+    "install:win-rollup": "node scripts/install-win-rollup.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
