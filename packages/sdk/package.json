@@ -27,7 +27,7 @@
     "@liveness/engine": "1.0.3"
   },
   "devDependencies": {
-    "vite": "^8.0.14"
+    "vite": "^8.1.5"
   },
   "scripts": {
     "build": "vite build"
