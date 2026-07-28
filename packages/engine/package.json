@@ -1,6 +1,6 @@
 {
   "name": "@liveness/engine",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Core computer vision logic and mathematical utilities for Active Liveness Detection.",
   "author": "John Paul Patigas <johnpaulpatigas@gmail.com>",
   "license": "MIT",
