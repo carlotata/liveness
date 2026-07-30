@@ -15,9 +15,10 @@ import {
   Terminal,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
+import Navbar from "../components/Navbar";
 import { api } from "../services/api";
 
 const SidebarItem = ({ id, label, activeId, onClick, icon: Icon }) => (
@@ -50,7 +51,7 @@ const CodeBlock = ({ code, language, title }) => (
           <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/80"></div>
         </div>
         {title && (
-          <span className="text-xs font-medium text-slate-400 truncate max-w-[200px] sm:max-w-none">{title}</span>
+          <span className="text-xs font-medium text-slate-400 truncate max-w-50 sm:max-w-none">{title}</span>
         )}
       </div>
       <span className="text-[10px] sm:text-xs font-semibold tracking-wider text-slate-500 uppercase shrink-0">
@@ -77,7 +78,7 @@ const IntroContent = () => (
     </p>
 
     <div className="grid gap-6 md:grid-cols-2">
-      <div className="rounded-3xl border border-slate-100 bg-white p-6 sm:p-8">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 sm:p-8">
         <h3 className="mb-4 flex items-center text-lg sm:text-xl font-bold">
           <Terminal className="mr-2 h-5 w-5 text-blue-600" /> For Developers
         </h3>
@@ -100,7 +101,7 @@ const IntroContent = () => (
           </li>
         </ul>
       </div>
-      <div className="rounded-3xl border border-slate-100 bg-white p-6 sm:p-8">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 sm:p-8">
         <h3 className="mb-4 flex items-center text-lg sm:text-xl font-bold">
           <Cloud className="mr-2 h-5 w-5 text-blue-600" /> For Enterprises
         </h3>
@@ -217,7 +218,7 @@ const CloudUsageContent = () => (
     </p>
 
     <div className="space-y-8 sm:space-y-12">
-      <div className="rounded-2xl sm:rounded-3xl border-2 border-blue-100 bg-blue-50/30 p-5 sm:p-8">
+      <div className="rounded-2xl border-2 border-blue-100 bg-blue-50/30 p-5 sm:p-8">
         <h3 className="mb-3 sm:mb-4 flex items-center text-lg sm:text-xl font-bold">
           <Key className="mr-2 h-5 w-5 text-blue-600" /> 1. Manage API Keys
         </h3>
@@ -402,7 +403,7 @@ const MethodologyContent = () => (
     </h2>
 
     <div className="space-y-8 sm:space-y-12">
-      <div className="rounded-2xl sm:rounded-3xl border border-slate-100 p-5 sm:p-8">
+      <div className="rounded-2xl border border-slate-100 p-5 sm:p-8">
         <h3 className="mb-3 sm:mb-4 text-lg sm:text-xl font-bold text-slate-900">
           Active Verification (State Machine)
         </h3>
@@ -429,7 +430,7 @@ const MethodologyContent = () => (
         </div>
       </div>
 
-      <div className="rounded-2xl sm:rounded-3xl border border-slate-100 p-5 sm:p-8">
+      <div className="rounded-2xl border border-slate-100 p-5 sm:p-8">
         <h3 className="mb-3 sm:mb-4 text-lg sm:text-xl font-bold text-slate-900">
           Anti-Spoofing Analytics
         </h3>
@@ -480,7 +481,7 @@ const APIRefContent = () => (
           LivenessSDK Configuration
         </h3>
         <div className="overflow-x-auto rounded-xl sm:rounded-2xl border border-slate-100">
-          <table className="w-full text-left text-sm min-w-[500px]">
+          <table className="w-full text-left text-sm min-w-125">
             <thead className="bg-slate-50 font-bold tracking-wider text-slate-500 uppercase">
               <tr>
                 <th className="px-4 sm:px-6 py-3 sm:py-4">Option</th>
@@ -574,7 +575,7 @@ const APIRefContent = () => (
       <div>
         <h3 className="mb-4 sm:mb-6 font-bold text-slate-900">Error Codes Reference</h3>
         <div className="overflow-x-auto rounded-xl sm:rounded-2xl border border-slate-100">
-          <table className="w-full text-left text-sm min-w-[500px]">
+          <table className="w-full text-left text-sm min-w-125">
             <thead className="bg-slate-50 font-bold tracking-wider text-slate-500 uppercase">
               <tr>
                 <th className="px-4 sm:px-6 py-3 sm:py-4">Error Code</th>
@@ -615,9 +616,32 @@ const APIRefContent = () => (
 const Documentation = () => {
   const [activePage, setActivePage] = useState("introduction");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const user = api.auth.getCurrentUser();
   const navigate = useNavigate();
   const location = useLocation();
-  const user = api.auth.getCurrentUser();
+
+  useEffect(() => {
+    const hash = location.hash.replace("#", "");
+    const searchParams = new URLSearchParams(location.search);
+    const section = searchParams.get("section") || hash;
+    const validSections = ["introduction", "sdk-usage", "cloud-usage", "methodology", "api-ref"];
+    if (section && validSections.includes(section)) {
+      setActivePage(section);
+    }
+  }, [location]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const scrollToTop = () => {
     const mainEl = document.querySelector("main");
@@ -714,35 +738,32 @@ const Documentation = () => {
       <div className="lg:hidden w-full mb-3 relative">
         <button
           onClick={() => setTopicDropdownOpen((prev) => !prev)}
-          className="flex w-full items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-2.5 px-3.5 shadow-xs transition-all hover:border-slate-300 active:scale-[0.99] cursor-pointer"
+          className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white p-3 px-4 shadow-sm transition-all hover:border-slate-300 active:scale-[0.99] cursor-pointer"
         >
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm shrink-0">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 shrink-0">
               <CurrentIcon className="h-4 w-4" />
             </div>
-            <div className="flex flex-col text-left min-w-0 pr-2">
-              <span className="text-xs font-extrabold text-slate-900 truncate">
+            <div className="flex flex-col text-left min-w-0">
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Topic</span>
+              <span className="text-sm font-bold text-slate-900 truncate">
                 {currentItem.label}
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="rounded-lg bg-blue-50 px-2 py-1 text-[10px] font-extrabold text-blue-600 uppercase">
-            </span>
-            <ChevronDown
-              className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
-                topicDropdownOpen ? "rotate-180 text-blue-600" : ""
-              }`}
-            />
-          </div>
+          <ChevronDown
+            className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
+              topicDropdownOpen ? "rotate-180 text-blue-600" : ""
+            }`}
+          />
         </button>
 
         {/* Custom Animated Topic Menu Panel */}
         {topicDropdownOpen && (
-          <div className="absolute top-full left-0 right-0 z-40 mt-2 rounded-2xl border border-slate-100 bg-white p-3 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+          <div className="absolute top-full left-0 right-0 z-40 mt-2 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xl animate-in fade-in zoom-in-95 duration-150">
             {menu.map((group, idx) => (
-              <div key={idx} className="mb-3.5 last:mb-0">
-                <div className="mb-1.5 px-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <div key={idx} className="mb-3 last:mb-0">
+                <div className="mb-2 px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                   {group.title}
                 </div>
                 <div className="space-y-1">
@@ -756,19 +777,20 @@ const Documentation = () => {
                           handleTopicChange(item.id);
                           setTopicDropdownOpen(false);
                         }}
-                        className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold transition-all cursor-pointer ${
+                        className={`flex w-full items-center rounded-lg px-4 py-2.5 text-left text-sm font-medium transition-all cursor-pointer ${
                           isActive
-                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/20"
-                            : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                            ? "bg-blue-600 text-white shadow-md shadow-blue-200"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                         }`}
                       >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <ItemIcon className={`h-4 w-4 shrink-0 ${isActive ? "text-white" : "text-slate-400"}`} />
-                          <span className="truncate">{item.label}</span>
-                        </div>
-                        {isActive && (
-                          <span className="h-1.5 w-1.5 rounded-full bg-white shadow-xs shrink-0" />
+                        {ItemIcon && (
+                          <ItemIcon
+                            className={`mr-3 h-4 w-4 ${
+                              isActive ? "text-white" : "text-slate-400"
+                            }`}
+                          />
                         )}
+                        <span>{item.label}</span>
                       </button>
                     );
                   })}
@@ -825,30 +847,14 @@ const Documentation = () => {
   return user ? (
     <DashboardLayout>{pageContent}</DashboardLayout>
   ) : (
-    <div className="min-h-screen bg-slate-50/50 font-sans text-slate-900">
-      <header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-slate-200/60 bg-white/80 px-6 backdrop-blur-md">
-        <Link to="/" className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600 text-white">
-            <ShieldCheck className="h-4 w-4" />
-          </div>
-          <span className="font-extrabold text-slate-900">Liveness Docs</span>
-        </Link>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate("/login")}
-            className="text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
-          >
-            Sign In
-          </button>
-          <button
-            onClick={() => navigate("/signup")}
-            className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 cursor-pointer"
-          >
-            Get Started
-          </button>
-        </div>
-      </header>
-      <main className="mx-auto max-w-7xl p-6 sm:p-8">{pageContent}</main>
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-blue-100 selection:text-blue-900 antialiased">
+      {/* Shared Reusable Public Glassmorphism Header Navigation */}
+      <Navbar />
+
+      {/* Main Documentation Body with Original Light Slate Background */}
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 md:px-12">
+        {pageContent}
+      </div>
     </div>
   );
 };

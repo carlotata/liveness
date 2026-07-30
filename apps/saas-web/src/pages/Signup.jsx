@@ -1,4 +1,4 @@
-import { Lock as LockIcon, Mail, ShieldCheck, User, X } from "lucide-react";
+import { AlertCircle, Lock as LockIcon, Mail, ShieldCheck, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -29,6 +29,7 @@ export default function Signup({ modal = false }) {
     email: "",
   });
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -50,16 +51,28 @@ export default function Signup({ modal = false }) {
   };
 
   const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value }));
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+    if (fieldErrors[id]) {
+      setFieldErrors((prev) => ({ ...prev, [id]: null }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setFieldErrors({});
 
     const validation = signupSchema.safeParse(formData);
     if (!validation.success) {
-      return setError(validation.error.issues[0].message);
+      const formattedErrors = {};
+      validation.error.issues.forEach((issue) => {
+        if (issue.path[0]) {
+          formattedErrors[issue.path[0]] = issue.message;
+        }
+      });
+      setFieldErrors(formattedErrors);
+      return;
     }
 
     setLoading(true);
@@ -69,34 +82,42 @@ export default function Signup({ modal = false }) {
         formData.password,
         formData.firstName,
         formData.lastName,
-        formData.email,
+        formData.email
       );
       await api.auth.login(formData.username, formData.password);
       navigate("/dashboard", { replace: true });
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "An error occurred during registration.");
     } finally {
       setLoading(false);
     }
   };
 
-  const inputClass =
-    "block w-full rounded-xl border border-slate-200 bg-slate-50/50 py-3 pr-4 text-sm font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none";
+  const getInputClass = (fieldId) => {
+    const base =
+      "block w-full rounded-lg border py-2.5 pr-4 text-sm font-medium transition-all focus:outline-none";
+    if (fieldErrors[fieldId]) {
+      return `${base} border-red-500 bg-red-50/20 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10`;
+    }
+    return `${base} border-slate-200 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10`;
+  };
+
+  const hasFieldErrors = Object.keys(fieldErrors).some((key) => fieldErrors[key]);
 
   const formContent = (
     <div className="w-full">
       {/* Header */}
-      <div className="mb-6 flex items-start justify-between">
+      <div className="mb-7 flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 shadow-lg shadow-blue-200">
-            <ShieldCheck className="h-6 w-6 text-white" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-md shadow-blue-200">
+            <ShieldCheck className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-black tracking-tight text-slate-900">
-              Join the Cloud
+            <h2 className="text-xl font-extrabold tracking-tight text-slate-900">
+              Create an Account
             </h2>
             <p className="text-xs font-medium text-slate-400">
-              Get started free — no credit card needed
+              Get started with your free 1,000 checks
             </p>
           </div>
         </div>
@@ -104,7 +125,7 @@ export default function Signup({ modal = false }) {
           <button
             type="button"
             onClick={handleClose}
-            className="rounded-xl p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 active:scale-95 cursor-pointer"
+            className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 active:scale-95 cursor-pointer"
             aria-label="Close"
           >
             <X className="h-5 w-5" />
@@ -112,87 +133,93 @@ export default function Signup({ modal = false }) {
         )}
       </div>
 
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        {error && (
-          <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">
-            {error}
+      <form className="space-y-3.5" onSubmit={handleSubmit}>
+        {/* Top Error Banner */}
+        {!hasFieldErrors && error && (
+          <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700 shadow-2xs">
+            <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-red-800 mb-0.5">Registration Error</p>
+              <p className="font-medium text-red-600 leading-normal">{error}</p>
+            </div>
           </div>
         )}
 
-        {/* Name row */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           <div>
             <label
               htmlFor="firstName"
-              className="mb-1.5 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
+              className="mb-1 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
             >
               First Name
             </label>
-            <input
-              id="firstName"
-              type="text"
-              required
-              autoFocus
-              value={formData.firstName}
-              onChange={handleChange}
-              className={inputClass + " px-4"}
-              placeholder="John"
-            />
+            <div className="relative">
+              <input
+                id="firstName"
+                type="text"
+                required
+                value={formData.firstName}
+                onChange={handleChange}
+                className={`${getInputClass("firstName")} pl-3.5`}
+                placeholder="Jane"
+              />
+              {fieldErrors.firstName && (
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                  <AlertCircle className="h-4 w-4 text-red-500" />
+                </div>
+              )}
+            </div>
+            {fieldErrors.firstName && (
+              <p className="mt-1 ml-1 text-xs font-medium text-red-600">
+                {fieldErrors.firstName}
+              </p>
+            )}
           </div>
           <div>
             <label
               htmlFor="lastName"
-              className="mb-1.5 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
+              className="mb-1 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
             >
               Last Name
             </label>
-            <input
-              id="lastName"
-              type="text"
-              required
-              value={formData.lastName}
-              onChange={handleChange}
-              className={inputClass + " px-4"}
-              placeholder="Doe"
-            />
-          </div>
-        </div>
-
-        {/* Email */}
-        <div>
-          <label
-            htmlFor="email"
-            className="mb-1.5 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
-          >
-            Email Address
-          </label>
-          <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-              <Mail className="h-4 w-4 text-slate-400" />
+            <div className="relative">
+              <input
+                id="lastName"
+                type="text"
+                required
+                value={formData.lastName}
+                onChange={handleChange}
+                className={`${getInputClass("lastName")} pl-3.5`}
+                placeholder="Doe"
+              />
+              {fieldErrors.lastName && (
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                  <AlertCircle className="h-4 w-4 text-red-500" />
+                </div>
+              )}
             </div>
-            <input
-              id="email"
-              type="email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-              className={inputClass + " pl-10"}
-              placeholder="john@example.com"
-            />
+            {fieldErrors.lastName && (
+              <p className="mt-1 ml-1 text-xs font-medium text-red-600">
+                {fieldErrors.lastName}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Username */}
         <div>
           <label
             htmlFor="username"
-            className="mb-1.5 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
+            className="mb-1 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
           >
             Username
           </label>
           <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-              <User className="h-4 w-4 text-slate-400" />
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+              <User
+                className={`h-4 w-4 ${
+                  fieldErrors.username ? "text-red-500" : "text-slate-400"
+                }`}
+              />
             </div>
             <input
               id="username"
@@ -200,24 +227,74 @@ export default function Signup({ modal = false }) {
               required
               value={formData.username}
               onChange={handleChange}
-              className={inputClass + " pl-10"}
-              placeholder="johndoe123"
+              className={`${getInputClass("username")} pl-9`}
+              placeholder="janedoe"
             />
+            {fieldErrors.username && (
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                <AlertCircle className="h-4 w-4 text-red-500" />
+              </div>
+            )}
           </div>
+          {fieldErrors.username && (
+            <p className="mt-1 ml-1 text-xs font-medium text-red-600">
+              {fieldErrors.username}
+            </p>
+          )}
         </div>
 
-        {/* Password row */}
-        <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label
+            htmlFor="email"
+            className="mb-1 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
+          >
+            Email Address
+          </label>
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+              <Mail
+                className={`h-4 w-4 ${
+                  fieldErrors.email ? "text-red-500" : "text-slate-400"
+                }`}
+              />
+            </div>
+            <input
+              id="email"
+              type="email"
+              required
+              value={formData.email}
+              onChange={handleChange}
+              className={`${getInputClass("email")} pl-9`}
+              placeholder="jane@example.com"
+            />
+            {fieldErrors.email && (
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                <AlertCircle className="h-4 w-4 text-red-500" />
+              </div>
+            )}
+          </div>
+          {fieldErrors.email && (
+            <p className="mt-1 ml-1 text-xs font-medium text-red-600">
+              {fieldErrors.email}
+            </p>
+          )}
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
           <div>
             <label
               htmlFor="password"
-              className="mb-1.5 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
+              className="mb-1 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
             >
               Password
             </label>
             <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                <LockIcon className="h-4 w-4 text-slate-400" />
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                <LockIcon
+                  className={`h-4 w-4 ${
+                    fieldErrors.password ? "text-red-500" : "text-slate-400"
+                  }`}
+                />
               </div>
               <input
                 id="password"
@@ -225,58 +302,79 @@ export default function Signup({ modal = false }) {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className={inputClass + " pl-10"}
+                className={`${getInputClass("password")} pl-9`}
                 placeholder="••••••••"
               />
+              {fieldErrors.password && (
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                  <AlertCircle className="h-4 w-4 text-red-500" />
+                </div>
+              )}
             </div>
+            {fieldErrors.password && (
+              <p className="mt-1 ml-1 text-xs font-medium text-red-600">
+                {fieldErrors.password}
+              </p>
+            )}
           </div>
           <div>
             <label
               htmlFor="confirmPassword"
-              className="mb-1.5 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
+              className="mb-1 ml-1 block text-xs font-bold uppercase tracking-wider text-slate-500"
             >
               Confirm
             </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              required
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              className={inputClass + " px-4"}
-              placeholder="Repeat"
-            />
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                <LockIcon
+                  className={`h-4 w-4 ${
+                    fieldErrors.confirmPassword ? "text-red-500" : "text-slate-400"
+                  }`}
+                />
+              </div>
+              <input
+                id="confirmPassword"
+                type="password"
+                required
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className={`${getInputClass("confirmPassword")} pl-9`}
+                placeholder="••••••••"
+              />
+              {fieldErrors.confirmPassword && (
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                  <AlertCircle className="h-4 w-4 text-red-500" />
+                </div>
+              )}
+            </div>
+            {fieldErrors.confirmPassword && (
+              <p className="mt-1 ml-1 text-xs font-medium text-red-600">
+                {fieldErrors.confirmPassword}
+              </p>
+            )}
           </div>
         </div>
 
-        <div className="pt-1">
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex w-full justify-center rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-200 transition-all hover:-translate-y-0.5 hover:bg-blue-700 focus:ring-4 focus:ring-blue-500/20 focus:outline-none active:translate-y-0 disabled:opacity-50 cursor-pointer"
-          >
-            {loading ? "Creating your account..." : "Start Building for Free"}
-          </button>
-        </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="mt-2 flex w-full justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-blue-700 focus:ring-4 focus:ring-blue-500/20 focus:outline-none active:scale-98 disabled:opacity-50 cursor-pointer"
+        >
+          {loading ? "Creating account..." : "Create Free Account"}
+        </button>
       </form>
 
-      <div className="mt-5">
-        <div className="relative flex items-center justify-center">
-          <div className="flex-1 border-t border-slate-100" />
-          <span className="mx-4 text-xs font-medium text-slate-400">
-            Already have an account?
-          </span>
-          <div className="flex-1 border-t border-slate-100" />
-        </div>
-        <div className="mt-4 text-center">
+      <div className="mt-6 text-center">
+        <p className="text-xs font-medium text-slate-500">
+          Already have an account?{" "}
           <Link
             to="/login"
             state={modal ? location.state : undefined}
-            className="text-sm font-bold text-blue-600 transition-colors hover:text-blue-700"
+            className="font-bold text-blue-600 transition-colors hover:text-blue-700"
           >
-            Log in to your console &rarr;
+            Sign in
           </Link>
-        </div>
+        </p>
       </div>
     </div>
   );
@@ -286,12 +384,12 @@ export default function Signup({ modal = false }) {
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
         {/* Backdrop */}
         <div
-          className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+          className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs"
           onClick={handleClose}
         />
         {/* Modal Card */}
-        <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
-          <div className="rounded-3xl border border-slate-100 bg-white p-7 shadow-2xl">
+        <div className="relative w-full max-w-lg animate-in zoom-in-95 duration-200">
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 sm:p-7 shadow-2xl">
             {formContent}
           </div>
         </div>
@@ -299,10 +397,10 @@ export default function Signup({ modal = false }) {
     );
   }
 
-  // Standalone full-page fallback (direct URL access)
+  // Standalone full-page fallback
   return (
     <AuthLayout>
-      <div className="w-full max-w-md rounded-3xl border border-slate-100 bg-white p-7 shadow-2xl shadow-slate-200">
+      <div className="w-full max-w-lg rounded-2xl border border-slate-100 bg-white p-6 sm:p-7 shadow-2xl shadow-slate-200">
         {formContent}
       </div>
     </AuthLayout>

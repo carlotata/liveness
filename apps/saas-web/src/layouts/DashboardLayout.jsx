@@ -138,7 +138,7 @@ export default function DashboardLayout({ children }) {
         </div>
 
         {/* Mobile User Profile Card (Mobile Drawer Only - Hidden on Desktop) */}
-        <div className="mb-6 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50/80 to-indigo-50/50 p-4 shadow-xs md:hidden">
+        <div className="mb-6 rounded-2xl border border-blue-100 bg-linear-to-r from-blue-50/80 to-indigo-50/50 p-4 shadow-xs md:hidden">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white shadow-md shadow-blue-500/20 shrink-0">
               {initials}
@@ -288,7 +288,7 @@ export default function DashboardLayout({ children }) {
   return (
     <div className="relative flex h-screen overflow-hidden bg-white font-sans text-slate-900">
       {/* Background Subtle Gradient Glow matching Landing Page */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-50/40 via-white to-white z-0" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-blue-50/40 via-white to-white z-0" />
 
       {/* Mobile Drawer Overlay Backdrop */}
       {mobileMenuOpen && (

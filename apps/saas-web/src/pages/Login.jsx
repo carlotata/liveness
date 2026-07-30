@@ -1,4 +1,4 @@
-import { Lock as LockIcon, ShieldCheck, User, X } from "lucide-react";
+import { AlertCircle, Lock as LockIcon, ShieldCheck, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -14,6 +14,7 @@ export default function Login({ modal = false }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,10 +39,18 @@ export default function Login({ modal = false }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setFieldErrors({});
 
     const validation = loginSchema.safeParse({ username, password });
     if (!validation.success) {
-      return setError(validation.error.issues[0].message);
+      const formattedErrors = {};
+      validation.error.issues.forEach((issue) => {
+        if (issue.path[0]) {
+          formattedErrors[issue.path[0]] = issue.message;
+        }
+      });
+      setFieldErrors(formattedErrors);
+      return;
     }
 
     setLoading(true);
@@ -49,22 +58,24 @@ export default function Login({ modal = false }) {
       await api.auth.login(username, password);
       navigate(from, { replace: true });
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Invalid credentials. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+
+  const hasFieldErrors = Object.keys(fieldErrors).some((key) => fieldErrors[key]);
 
   const formContent = (
     <div className="w-full">
       {/* Header */}
       <div className="mb-7 flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 shadow-lg shadow-blue-200">
-            <ShieldCheck className="h-6 w-6 text-white" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-md shadow-blue-200">
+            <ShieldCheck className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-black tracking-tight text-slate-900">
+            <h2 className="text-xl font-extrabold tracking-tight text-slate-900">
               Welcome Back
             </h2>
             <p className="text-xs font-medium text-slate-400">
@@ -76,7 +87,7 @@ export default function Login({ modal = false }) {
           <button
             type="button"
             onClick={handleClose}
-            className="rounded-xl p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 active:scale-95 cursor-pointer"
+            className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 active:scale-95 cursor-pointer"
             aria-label="Close"
           >
             <X className="h-5 w-5" />
@@ -84,10 +95,15 @@ export default function Login({ modal = false }) {
         )}
       </div>
 
-      <form className="space-y-5" onSubmit={handleSubmit}>
-        {error && (
-          <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-xs font-bold text-rose-600">
-            {error}
+      <form className="space-y-4" onSubmit={handleSubmit}>
+        {/* Top Error Banner */}
+        {!hasFieldErrors && error && (
+          <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 p-3.5 text-xs text-red-700 shadow-2xs">
+            <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-red-800 mb-0.5">Authentication Error</p>
+              <p className="font-medium text-red-600 leading-normal">{error}</p>
+            </div>
           </div>
         )}
 
@@ -99,8 +115,12 @@ export default function Login({ modal = false }) {
             Username
           </label>
           <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-              <User className="h-4 w-4 text-slate-400" />
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+              <User
+                className={`h-4 w-4 ${
+                  fieldErrors.username ? "text-red-500" : "text-slate-400"
+                }`}
+              />
             </div>
             <input
               id="username"
@@ -109,11 +129,29 @@ export default function Login({ modal = false }) {
               required
               autoFocus
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="block w-full rounded-xl border border-slate-200 bg-slate-50/50 py-3 pr-4 pl-10 text-sm font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none"
+              onChange={(e) => {
+                setUsername(e.target.value);
+                if (fieldErrors.username)
+                  setFieldErrors((prev) => ({ ...prev, username: null }));
+              }}
+              className={`block w-full rounded-lg border py-2.5 pr-9 pl-9 text-sm font-medium transition-all ${
+                fieldErrors.username
+                  ? "border-red-500 bg-red-50/20 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10 focus:outline-none"
+                  : "border-slate-200 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none"
+              }`}
               placeholder="johndoe"
             />
+            {fieldErrors.username && (
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                <AlertCircle className="h-4 w-4 text-red-500" />
+              </div>
+            )}
           </div>
+          {fieldErrors.username && (
+            <p className="mt-1 ml-1 text-xs font-medium text-red-600">
+              {fieldErrors.username}
+            </p>
+          )}
         </div>
 
         <div>
@@ -124,8 +162,12 @@ export default function Login({ modal = false }) {
             Password
           </label>
           <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-              <LockIcon className="h-4 w-4 text-slate-400" />
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+              <LockIcon
+                className={`h-4 w-4 ${
+                  fieldErrors.password ? "text-red-500" : "text-slate-400"
+                }`}
+              />
             </div>
             <input
               id="password"
@@ -133,11 +175,29 @@ export default function Login({ modal = false }) {
               type="password"
               required
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="block w-full rounded-xl border border-slate-200 bg-slate-50/50 py-3 pr-4 pl-10 text-sm font-medium text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none"
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (fieldErrors.password)
+                  setFieldErrors((prev) => ({ ...prev, password: null }));
+              }}
+              className={`block w-full rounded-lg border py-2.5 pr-9 pl-9 text-sm font-medium transition-all ${
+                fieldErrors.password
+                  ? "border-red-500 bg-red-50/20 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/10 focus:outline-none"
+                  : "border-slate-200 bg-slate-50/50 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none"
+              }`}
               placeholder="••••••••"
             />
+            {fieldErrors.password && (
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                <AlertCircle className="h-4 w-4 text-red-500" />
+              </div>
+            )}
           </div>
+          {fieldErrors.password && (
+            <p className="mt-1 ml-1 text-xs font-medium text-red-600">
+              {fieldErrors.password}
+            </p>
+          )}
           <div className="mt-2 text-right">
             <Link
               to="/forgot-password"
@@ -152,7 +212,7 @@ export default function Login({ modal = false }) {
         <button
           type="submit"
           disabled={loading}
-          className="flex w-full justify-center rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 focus:ring-4 focus:ring-blue-500/20 focus:outline-none active:scale-95 disabled:opacity-50 cursor-pointer"
+          className="flex w-full justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-blue-700 focus:ring-4 focus:ring-blue-500/20 focus:outline-none active:scale-98 disabled:opacity-50 cursor-pointer"
         >
           {loading ? "Signing in..." : "Sign in to Dashboard"}
         </button>
@@ -189,7 +249,7 @@ export default function Login({ modal = false }) {
         />
         {/* Modal Card */}
         <div className="relative w-full max-w-md animate-in zoom-in-95 duration-200">
-          <div className="rounded-3xl border border-slate-100 bg-white p-7 shadow-2xl">
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 sm:p-7 shadow-2xl">
             {formContent}
           </div>
         </div>
@@ -200,11 +260,9 @@ export default function Login({ modal = false }) {
   // Standalone full-page fallback (direct URL access)
   return (
     <AuthLayout>
-      <div className="w-full max-w-md rounded-3xl border border-slate-100 bg-white p-7 shadow-2xl shadow-slate-200">
+      <div className="w-full max-w-md rounded-2xl border border-slate-100 bg-white p-6 sm:p-7 shadow-2xl shadow-slate-200">
         {formContent}
       </div>
     </AuthLayout>
   );
 }
-
-
