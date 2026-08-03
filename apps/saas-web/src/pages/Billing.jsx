@@ -1,5 +1,7 @@
 import { CheckCircle2, Crown, ShieldCheck, Star, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 import { api } from "../services/api";
 
 const Billing = () => {
@@ -42,159 +44,175 @@ const Billing = () => {
     }
   };
 
-  if (loading)
+  const handleDowngrade = async () => {
+    setUpgrading(true);
+    setMessage("");
+    try {
+      const { subscriptionTier } = await api.billing.downgrade();
+      const updatedUser = { ...user, subscriptionTier };
+      localStorage.setItem("liveness_admin", JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      setMessage("Successfully downgraded to FREE tier.");
+    } catch {
+      setMessage("Failed to downgrade. Please try again.");
+    } finally {
+      setUpgrading(false);
+    }
+  };
+
+  const isPro = user?.subscriptionTier === "PRO";
+
+  if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+      <div className="space-y-6 animate-in fade-in duration-500">
+        <div className="border-b border-slate-200/80 pb-6">
+          <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
+            Subscription & Plans
+          </h1>
+          <p className="mt-1 text-sm font-medium text-slate-600">
+            Manage your subscription tier, billing status, and usage quotas.
+          </p>
+        </div>
+        <SkeletonTheme baseColor="#e2e8f0" highlightColor="#f8fafc">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm space-y-4">
+                <div className="flex justify-between items-center">
+                  <Skeleton height={24} width={100} />
+                  <Skeleton height={20} width={60} borderRadius={12} />
+                </div>
+                <Skeleton height={32} width={140} />
+                <Skeleton height={12} width="100%" />
+                <div className="space-y-2 pt-4 border-t border-slate-100">
+                  <Skeleton height={16} width="85%" />
+                  <Skeleton height={16} width="70%" />
+                  <Skeleton height={16} width="50%" />
+                </div>
+                <Skeleton height={40} width="100%" borderRadius={12} />
+              </div>
+            ))}
+          </div>
+        </SkeletonTheme>
       </div>
     );
+  }
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 space-y-6 sm:space-y-8 duration-500">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-          Subscription & Usage
-        </h1>
-        <p className="mt-1 text-xs sm:text-sm font-medium text-slate-500">
-          Manage your plan and billing preferences
-        </p>
+    <div className="animate-in fade-in duration-500 space-y-6">
+      {/* Header Banner */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-slate-200/80 pb-6">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
+            Subscription & Usage Quotas
+          </h1>
+          <p className="mt-1 text-sm font-medium text-slate-600 max-w-xl">
+            Manage your API subscription plan, upgrade quotas, and review enterprise billing capabilities.
+          </p>
+        </div>
       </div>
 
       {message && (
         <div
-          className={`animate-in zoom-in-95 flex items-center gap-4 rounded-xl border p-4 duration-300 ${message.includes("Successfully") ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}
+          className={`animate-in zoom-in-95 flex items-center gap-3.5 rounded-xl border p-4 duration-300 ${message.includes("Successfully") ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}
         >
           <div
             className={`rounded-lg p-1.5 shrink-0 ${message.includes("Successfully") ? "bg-emerald-100" : "bg-rose-100"}`}
           >
-            <CheckCircle2 className="h-5 w-5" />
+            <CheckCircle2 className="h-4 w-4" />
           </div>
-          <span className="text-xs sm:text-sm font-bold">{message}</span>
+          <span className="text-xs font-extrabold">{message}</span>
         </div>
       )}
 
-      <div className="grid max-w-5xl grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-2">
+      <div className="grid max-w-5xl grid-cols-1 gap-8 text-left lg:grid-cols-2 items-stretch">
         {/* Free Plan */}
-        <div
-          className={`relative rounded-2xl border bg-white p-6 sm:p-8 transition-all ${user?.subscriptionTier === "free" ? "border-blue-500/60 shadow-lg shadow-blue-500/10 ring-1 ring-blue-500/20" : "border-slate-200/80 opacity-80 shadow-xs"}`}
-        >
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm flex flex-col justify-between transition-all hover:border-slate-300 relative">
           {user?.subscriptionTier === "free" && (
-            <div className="absolute -top-3 left-6 sm:left-8 rounded-full bg-blue-600 px-3.5 py-1 text-[10px] font-bold tracking-widest text-white uppercase shadow-sm">
-              Current Plan
-            </div>
+            <span className="absolute top-6 right-6 rounded-full bg-blue-50 text-blue-600 border border-blue-200/80 px-3 py-1 text-xs font-bold shrink-0">
+              CURRENT PLAN
+            </span>
           )}
-
-          <div className="mb-6 flex items-start justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-slate-900">Starter</h2>
-              <p className="mt-1 text-xs font-bold tracking-widest text-slate-400 uppercase italic">
-                Free Forever
-              </p>
+          <div>
+            <div className="mb-4">
+              <h3 className="text-xl font-bold text-slate-900">Free</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Ideal for prototyping & testing</p>
             </div>
-            <Zap
-              className={`h-7 w-7 ${user?.subscriptionTier === "free" ? "text-blue-600" : "text-slate-300"}`}
-            />
-          </div>
-
-          <div className="mb-8">
-            <span className="text-4xl font-black text-slate-900">$0</span>
-            <span className="ml-2 text-xs font-bold text-slate-400">/ month</span>
-          </div>
-
-          <ul className="mb-8 space-y-3.5">
-            {[
-              "Up to 1,000 checks / mo",
-              "Basic Analytics Console",
-              "Community Support Access",
-              "Single API Key issuance",
-            ].map((feature, idx) => (
-              <li
-                key={idx}
-                className="flex items-center gap-3 text-xs font-semibold text-slate-600"
-              >
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
-                {feature}
+            <p className="mb-6 text-4xl font-black text-slate-900">
+              $0
+              <span className="text-base font-normal text-slate-400">
+                /mo
+              </span>
+            </p>
+            <ul className="mb-8 space-y-3.5 text-xs sm:text-sm text-slate-600">
+              <li className="flex items-center">
+                <CheckCircle2 className="mr-3 h-4 w-4 sm:h-5 sm:w-5 text-green-500 shrink-0" /> 1,000 checks / month
               </li>
-            ))}
-          </ul>
-
+              <li className="flex items-center">
+                <CheckCircle2 className="mr-3 h-4 w-4 sm:h-5 sm:w-5 text-green-500 shrink-0" /> Standard API rate limits
+              </li>
+              <li className="flex items-center">
+                <CheckCircle2 className="mr-3 h-4 w-4 sm:h-5 sm:w-5 text-green-500 shrink-0" /> Community Support
+              </li>
+              <li className="flex items-center">
+                <CheckCircle2 className="mr-3 h-4 w-4 sm:h-5 sm:w-5 text-green-500 shrink-0" /> Basic Analytics Dashboard
+              </li>
+            </ul>
+          </div>
           <button
             disabled
-            className="w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-50 py-3 text-xs font-bold tracking-widest text-slate-400 uppercase transition-all"
+            className="w-full rounded-xl bg-slate-100 py-3 text-center text-sm font-bold text-slate-400 cursor-not-allowed transition-colors"
           >
-            {user?.subscriptionTier === "free" ? "Active Plan" : "Free Plan"}
+            {user?.subscriptionTier === "free" ? "Current Active Plan" : "Start for free"}
           </button>
         </div>
 
         {/* Pro Plan */}
-        <div
-          className={`relative rounded-2xl border bg-white p-6 sm:p-8 transition-all ${user?.subscriptionTier === "pro" ? "border-indigo-500/60 shadow-lg shadow-indigo-500/10 ring-1 ring-indigo-500/20" : "border-slate-200/80 shadow-md hover:-translate-y-1"}`}
-        >
-          {user?.subscriptionTier === "pro" && (
-            <div className="absolute -top-3 left-6 sm:left-8 rounded-full bg-indigo-600 px-3.5 py-1 text-[10px] font-bold tracking-widest text-white uppercase shadow-sm">
-              Active Pro
-            </div>
-          )}
-
-          <div className="mb-6 flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold text-slate-900">
-                  Professional
-                </h2>
-                <Crown className="h-4 w-4 fill-amber-400 text-amber-400 shrink-0" />
+        <div className="rounded-2xl border-2 border-blue-600 bg-white p-6 sm:p-8 shadow-xl shadow-blue-600/5 relative flex flex-col justify-between">
+          <div>
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-slate-900">Pro</h3>
+                <p className="text-xs text-slate-500 mt-0.5">For production & growing teams</p>
               </div>
-              <p className="mt-1 text-xs font-bold tracking-widest text-indigo-600 uppercase">
-                Scale without limits
-              </p>
+              <span className="rounded-full bg-blue-50 text-blue-600 border border-blue-200/80 px-3 py-1 text-xs font-bold shrink-0">
+                {user?.subscriptionTier === "pro" ? "ACTIVE PLAN" : "POPULAR"}
+              </span>
             </div>
-            <Star
-              className={`h-7 w-7 ${user?.subscriptionTier === "pro" ? "text-indigo-600" : "text-slate-300"}`}
-            />
-          </div>
-
-          <div className="mb-8">
-            <span className="text-4xl font-black text-slate-900">$49</span>
-            <span className="ml-2 text-xs font-bold text-slate-400">/ month</span>
-          </div>
-
-          <ul className="mb-8 space-y-3.5">
-            {[
-              "Unlimited verification checks",
-              "Advanced Neural Analytics",
-              "Priority 24/7 Support",
-              "Unlimited API Keys",
-              "Custom Webhook Integration",
-            ].map((feature, idx) => (
-              <li
-                key={idx}
-                className="flex items-center gap-3 text-xs font-semibold text-slate-600"
-              >
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-indigo-500" />
-                {feature}
+            <p className="mb-6 text-4xl font-black text-slate-900">
+              $49
+              <span className="text-base font-normal text-slate-400">/mo</span>
+            </p>
+            <ul className="mb-8 space-y-3.5 text-xs sm:text-sm text-slate-600">
+              <li className="flex items-center font-medium text-slate-900">
+                <CheckCircle2 className="mr-3 h-4 w-4 sm:h-5 sm:w-5 text-green-500 shrink-0" /> Unlimited checks
               </li>
-            ))}
-          </ul>
-
+              <li className="flex items-center">
+                <CheckCircle2 className="mr-3 h-4 w-4 sm:h-5 sm:w-5 text-green-500 shrink-0" /> High-throughput API access
+              </li>
+              <li className="flex items-center">
+                <CheckCircle2 className="mr-3 h-4 w-4 sm:h-5 sm:w-5 text-green-500 shrink-0" /> Priority 24/7 Support
+              </li>
+              <li className="flex items-center">
+                <CheckCircle2 className="mr-3 h-4 w-4 sm:h-5 sm:w-5 text-green-500 shrink-0" /> Advanced Analytics & Real-Time Logs
+              </li>
+            </ul>
+          </div>
           {user?.subscriptionTier === "free" ? (
             <button
               onClick={handleUpgrade}
               disabled={upgrading}
-              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 text-xs font-bold tracking-widest text-white uppercase shadow-md shadow-blue-500/20 transition-all hover:bg-blue-700 active:scale-95 disabled:opacity-50 cursor-pointer"
+              className="w-full rounded-xl bg-blue-600 py-3 text-center text-sm font-bold text-white shadow-sm transition-all hover:bg-blue-700 active:scale-98 cursor-pointer flex items-center justify-center gap-2"
             >
               {upgrading ? (
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
               ) : (
-                <>
-                  <Zap className="h-4 w-4 fill-white" />
-                  Upgrade Now
-                </>
+                "Get Pro Access"
               )}
             </button>
           ) : (
-            <div className="flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 py-3 text-xs font-bold tracking-widest text-emerald-700 uppercase">
+            <div className="w-full rounded-xl border border-emerald-200 bg-emerald-50 py-3 text-center text-sm font-bold text-emerald-700 uppercase flex items-center justify-center gap-2">
               <ShieldCheck className="h-4 w-4" />
-              Your Current Plan
+              Your Active Plan
             </div>
           )}
         </div>

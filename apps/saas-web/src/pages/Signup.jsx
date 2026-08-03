@@ -1,17 +1,32 @@
-import { AlertCircle, Lock as LockIcon, Mail, ShieldCheck, User, X } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Lock as LockIcon, Mail, ShieldCheck, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import AuthLayout from "../layouts/AuthLayout";
 import { api } from "../services/api";
 
+const BANNED_WORDS = ["fuck", "shit", "ass", "bitch", "bastard", "damn", "cunt", "dick", "cock", "piss", "slut", "whore", "nigger", "faggot"];
+const containsBannedWord = (val) => BANNED_WORDS.some((w) => val.toLowerCase().includes(w));
+
+const nameRule = z
+  .string()
+  .min(2, "Must be at least 2 characters")
+  .max(50, "Must be 50 characters or fewer")
+  .regex(/^[a-zA-Z\s\-']+$/, "Only letters, spaces, hyphens, and apostrophes allowed")
+  .refine((val) => !containsBannedWord(val), { message: "Name contains inappropriate language" });
+
 const signupSchema = z
   .object({
-    username: z.string().min(3, "Username must be at least 3 characters"),
+    username: z
+      .string()
+      .min(3, "Username must be at least 3 characters")
+      .max(30, "Username must be 30 characters or fewer")
+      .regex(/^[a-zA-Z0-9_.-]+$/, "Username may only contain letters, numbers, underscores, dots, or hyphens")
+      .refine((val) => !containsBannedWord(val), { message: "Username contains inappropriate language" }),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string(),
-    firstName: z.string().min(1, "First name is required"),
-    lastName: z.string().min(1, "Last name is required"),
+    firstName: nameRule,
+    lastName: nameRule,
     email: z.string().email("Invalid email address"),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -31,6 +46,8 @@ export default function Signup({ modal = false }) {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -298,18 +315,21 @@ export default function Signup({ modal = false }) {
               </div>
               <input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
                 value={formData.password}
                 onChange={handleChange}
                 className={`${getInputClass("password")} pl-9`}
                 placeholder="••••••••"
               />
-              {fieldErrors.password && (
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                </div>
-              )}
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
             {fieldErrors.password && (
               <p className="mt-1 ml-1 text-xs font-medium text-red-600">
@@ -334,18 +354,21 @@ export default function Signup({ modal = false }) {
               </div>
               <input
                 id="confirmPassword"
-                type="password"
+                type={showConfirm ? "text" : "password"}
                 required
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 className={`${getInputClass("confirmPassword")} pl-9`}
                 placeholder="••••••••"
               />
-              {fieldErrors.confirmPassword && (
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                </div>
-              )}
+              <button
+                type="button"
+                onClick={() => setShowConfirm((v) => !v)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                tabIndex={-1}
+              >
+                {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
             {fieldErrors.confirmPassword && (
               <p className="mt-1 ml-1 text-xs font-medium text-red-600">

@@ -25,18 +25,20 @@ const SidebarItem = ({ id, label, activeId, onClick, icon: Icon }) => (
   <li>
     <button
       onClick={() => onClick(id)}
-      className={`flex w-full items-center rounded-lg px-4 py-2.5 text-left text-sm font-medium transition-all ${
+      className={`group flex w-full items-center rounded-xl px-3.5 py-2.5 text-left text-xs sm:text-sm font-bold transition-all duration-150 cursor-pointer ${
         activeId === id
-          ? "bg-blue-600 text-white shadow-md shadow-blue-200"
-          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+          ? "bg-blue-50/80 text-blue-600 font-extrabold"
+          : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
       }`}
     >
       {Icon && (
         <Icon
-          className={`mr-3 h-4 w-4 ${activeId === id ? "text-white" : "text-slate-400"}`}
+          className={`mr-3 h-4.5 w-4.5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${
+            activeId === id ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600"
+          }`}
         />
       )}
-      {label}
+      <span>{label}</span>
     </button>
   </li>
 );
@@ -777,16 +779,16 @@ const Documentation = () => {
                           handleTopicChange(item.id);
                           setTopicDropdownOpen(false);
                         }}
-                        className={`flex w-full items-center rounded-lg px-4 py-2.5 text-left text-sm font-medium transition-all cursor-pointer ${
+                        className={`group flex w-full items-center rounded-xl px-3.5 py-2.5 text-left text-xs sm:text-sm font-bold transition-all duration-150 cursor-pointer ${
                           isActive
-                            ? "bg-blue-600 text-white shadow-md shadow-blue-200"
-                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                            ? "bg-blue-50/80 text-blue-600 font-extrabold"
+                            : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
                         }`}
                       >
                         {ItemIcon && (
                           <ItemIcon
-                            className={`mr-3 h-4 w-4 ${
-                              isActive ? "text-white" : "text-slate-400"
+                            className={`mr-3 h-4.5 w-4.5 shrink-0 transition-transform duration-200 group-hover:scale-105 ${
+                              isActive ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600"
                             }`}
                           />
                         )}

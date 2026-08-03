@@ -1,4 +1,4 @@
-import { AlertCircle, Lock as LockIcon, ShieldCheck, User, X } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Lock as LockIcon, ShieldCheck, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -16,6 +16,7 @@ export default function Login({ modal = false }) {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/dashboard";
@@ -172,7 +173,7 @@ export default function Login({ modal = false }) {
             <input
               id="password"
               name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               required
               value={password}
               onChange={(e) => {
@@ -187,11 +188,14 @@ export default function Login({ modal = false }) {
               }`}
               placeholder="••••••••"
             />
-            {fieldErrors.password && (
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                <AlertCircle className="h-4 w-4 text-red-500" />
-              </div>
-            )}
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
           {fieldErrors.password && (
             <p className="mt-1 ml-1 text-xs font-medium text-red-600">
