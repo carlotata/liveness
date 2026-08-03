@@ -69,6 +69,18 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ currentPassword, newPassword }),
       }),
+    updateProfile: async (firstName, lastName) => {
+      const updatedUser = await request("/dashboard/profile", {
+        method: "PUT",
+        body: JSON.stringify({ firstName, lastName }),
+      });
+      const saved = JSON.parse(localStorage.getItem(ADMIN_KEY));
+      localStorage.setItem(
+        ADMIN_KEY,
+        JSON.stringify({ ...saved, ...updatedUser }),
+      );
+      return updatedUser;
+    },
   },
 
   users: {

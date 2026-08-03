@@ -167,6 +167,34 @@ export async function changePassword(req, res) {
   }
 }
 
+const updateProfileSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+});
+
+export async function updateProfile(req, res) {
+  const adminId = req.user.id;
+  const validation = updateProfileSchema.safeParse(req.body);
+  if (!validation.success) {
+    return res.status(400).json({ error: validation.error.issues[0].message });
+  }
+  const { firstName, lastName } = validation.data;
+  try {
+    const updatedAdmin = await authServices.updateProfile(
+      adminId,
+      firstName,
+      lastName,
+    );
+    res.status(200).json(updatedAdmin);
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    if (error.status) {
+      return res.status(error.status).json({ error: error.message });
+    }
+    res.status(500).json({ error: "Failed to update profile." });
+  }
+}
+
 export async function logout(req, res) {
   res.clearCookie("token");
   res.status(204).send();

@@ -64,7 +64,6 @@ export default function Settings() {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [countdown, setCountdown] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const [profileSuccess, setProfileSuccess] = useState("");
@@ -75,41 +74,30 @@ export default function Settings() {
     firstName.trim() !== (user?.firstName || "").trim() ||
     lastName.trim() !== (user?.lastName || "").trim();
 
-  const handleProfileUpdate = (e) => {
+  const handleProfileUpdate = async (e) => {
     e.preventDefault();
     setProfileError("");
     setProfileSuccess("");
 
-    const validation = profileSchema.safeParse({ firstName: firstName.trim(), lastName: lastName.trim() });
+    const validation = profileSchema.safeParse({
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+    });
     if (!validation.success) {
       return setProfileError(validation.error.issues[0].message);
     }
 
     setProfileLoading(true);
-    const updatedUser = { ...user, firstName: firstName.trim(), lastName: lastName.trim(), email };
-    localStorage.setItem("liveness_admin", JSON.stringify(updatedUser));
-    setTimeout(() => {
-      setProfileLoading(false);
+    try {
+      await api.auth.updateProfile(firstName.trim(), lastName.trim());
       setProfileSuccess("Profile details updated successfully!");
-      setTimeout(() => setProfileSuccess(""), 3000);
-    }, 400);
+      setTimeout(() => setProfileSuccess(""), 2000);
+    } catch (err) {
+      setProfileError(err.message);
+    } finally {
+      setProfileLoading(false);
+    }
   };
-
-  const getPasswordStrength = (pwd) => {
-    if (!pwd) return { score: 0, label: "", color: "bg-slate-200" };
-    let score = 0;
-    if (pwd.length >= 6) score++;
-    if (pwd.length >= 10) score++;
-    if (/[A-Z]/.test(pwd)) score++;
-    if (/[0-9]/.test(pwd)) score++;
-    if (/[^A-Za-z0-9]/.test(pwd)) score++;
-
-    if (score <= 2) return { score: 33, label: "Weak", color: "bg-rose-500", text: "text-rose-600" };
-    if (score <= 4) return { score: 66, label: "Moderate", color: "bg-amber-500", text: "text-amber-600" };
-    return { score: 100, label: "Strong", color: "bg-emerald-500", text: "text-emerald-600" };
-  };
-
-  const strength = getPasswordStrength(newPassword);
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
@@ -132,23 +120,14 @@ export default function Settings() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      setSuccess("Password updated successfully! Signing you out in 3...");
-      let secs = 3;
-      setCountdown(secs);
-      const interval = setInterval(async () => {
-        secs -= 1;
-        if (secs <= 0) {
-          clearInterval(interval);
-          await api.auth.logout();
-          navigate("/login");
-        } else {
-          setSuccess(`Password updated successfully! Signing you out in ${secs}...`);
-          setCountdown(secs);
-        }
+      setSuccess("Password updated successfully! Logging you out...");
+      
+      setTimeout(async () => {
+        await api.auth.logout();
+        navigate("/login");
       }, 1000);
     } catch (err) {
       setError(err.message);
-    } finally {
       setLoading(false);
     }
   };
@@ -462,19 +441,13 @@ export default function Settings() {
                     </button>
                   </div>
 
-                  {/* Password Strength Indicator */}
                   {newPassword && (
-                    <div className="mt-2.5 space-y-1.5 animate-in fade-in duration-200">
-                      <div className="flex items-center justify-between text-[11px] font-bold">
-                        <span className="text-slate-500">Strength:</span>
-                        <span className={strength.text}>{strength.label}</span>
-                      </div>
-                      <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
-                        <div
-                          style={{ width: `${strength.score}%` }}
-                          className={`h-full rounded-full transition-all duration-300 ${strength.color}`}
-                        />
-                      </div>
+                    <div className="mt-2 text-[11px] font-bold">
+                      {newPassword.length < 6 ? (
+                        <span className="text-red-800">Too short (min 6 chars)</span>
+                      ) : (
+                        <span className="text-emerald-600">Good length</span>
+                      )}
                     </div>
                   )}
                 </div>

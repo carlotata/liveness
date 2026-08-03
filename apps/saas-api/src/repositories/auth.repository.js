@@ -51,6 +51,14 @@ export async function markTokenUsed(tokenId) {
   );
 }
 
+export async function updateAdminProfile(adminId, firstName, lastName) {
+  const result = await pool.query(
+    'UPDATE admins SET first_name = $1, last_name = $2 WHERE id = $3 RETURNING id, username, first_name as "firstName", last_name as "lastName", email, subscription_tier as "subscriptionTier", created_at',
+    [firstName, lastName, adminId],
+  );
+  return result.rows[0];
+}
+
 export async function updateAdminPassword(adminId, passwordHash) {
   await pool.query("UPDATE admins SET password_hash = $1 WHERE id = $2", [
     passwordHash,

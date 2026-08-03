@@ -241,6 +241,20 @@ export async function changePassword(adminId, currentPassword, newPassword) {
   return updatePassword;
 }
 
+export async function updateProfile(adminId, firstName, lastName) {
+  const updatedAdmin = await authRepositories.updateAdminProfile(
+    adminId,
+    firstName,
+    lastName,
+  );
+  if (!updatedAdmin) {
+    const error = new Error("Failed to update profile.");
+    error.status = 500;
+    throw error;
+  }
+  return updatedAdmin;
+}
+
 export async function getCurrentUser(adminId) {
   const admin = await authRepositories.findAdminById(adminId);
   if (!admin) {
